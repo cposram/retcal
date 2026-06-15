@@ -43,35 +43,32 @@
             color: var(--text-main);
             line-height: 1.5;
             padding: 12px;
-            overflow-x: hidden; /* 徹底防止手機版右側白邊與破版 */
+            overflow-x: hidden;
             background-image: 
                 radial-gradient(circle at 10% 30%, rgba(6, 182, 212, 0.02), transparent 30%),
                 radial-gradient(circle at 90% 70%, rgba(16, 185, 129, 0.02), transparent 30%);
         }
 
-        /* 主容器：桌機雙欄，手機自動轉單欄 */
         .container {
-            max-width: 1350px;
+            max-width: 1400px;
             margin: 0 auto;
             display: grid;
-            grid-template-columns: 380px 1fr;
+            grid-template-columns: 390px 1fr;
             gap: 16px;
             width: 100%;
         }
 
-        /* 關鍵修正：確保 Grid 子元素在手機板不會因為 Canvas 或 Table 撐開爆版 */
         aside, main {
             min-width: 0;
             width: 100%;
         }
 
-        @media (max-width: 1024px) {
+        @media (max-width: 1100px) {
             .container {
-                grid-template-columns: 1fr; /* 轉為直向單欄適應直屏幕 */
+                grid-template-columns: 1fr;
             }
         }
 
-        /* 頂部標題列 */
         header {
             grid-column: 1 / -1;
             padding: 12px 4px;
@@ -112,7 +109,6 @@
             border: 1px solid var(--border);
         }
 
-        /* 卡片主體 */
         .card {
             background: var(--bg-card);
             border-radius: 14px;
@@ -135,7 +131,6 @@
             padding-bottom: 8px;
         }
 
-        /* 表單排版 */
         .input-grid-two-col {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -144,7 +139,7 @@
 
         @media (max-width: 480px) {
             .input-grid-two-col {
-                grid-template-columns: 1fr; /* 手機直向時全面堆疊 */
+                grid-template-columns: 1fr;
             }
         }
 
@@ -217,10 +212,10 @@
             color: var(--accent-warning);
         }
 
-        /* 關鍵修正：數據儀表板 (極致適應直屏幕) */
+        /* 儀表板自適應排列 */
         .summary-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
             gap: 10px;
             margin-bottom: 16px;
         }
@@ -231,11 +226,17 @@
             border-radius: 10px;
             padding: 12px;
             text-align: center;
+            transition: border-color 0.2s;
         }
 
         .summary-box.highlight {
-            border-color: rgba(16, 185, 129, 0.3);
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.04), rgba(6, 182, 212, 0.04));
+            border-color: rgba(6, 182, 212, 0.3);
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.02), rgba(59, 130, 246, 0.02));
+        }
+
+        .summary-box.monte-carlo {
+            border-width: 1.5px;
+            background: rgba(11, 15, 25, 0.6);
         }
 
         .summary-box i {
@@ -244,8 +245,6 @@
             color: var(--text-muted);
         }
 
-        .summary-box.highlight i { color: var(--accent-green); }
-
         .summary-box .title {
             font-size: 0.75rem;
             color: var(--text-muted);
@@ -253,18 +252,14 @@
         }
 
         .summary-box .value {
-            font-size: 1.2rem;
+            font-size: 1.25rem;
             font-weight: 800;
             color: var(--text-main);
-            word-break: break-all;
         }
 
-        .summary-box.highlight .value { color: var(--accent-green); }
-
-        /* 當螢幕小於 600px (手機直向) 時，將儀表板改為「橫向條狀清單」，完美防止字體被切斷 */
         @media (max-width: 600px) {
             .summary-grid {
-                grid-template-columns: 1fr; /* 徹底放棄多欄，改為單欄一條一條排列 */
+                grid-template-columns: 1fr;
                 gap: 8px;
             }
             .summary-box {
@@ -291,18 +286,17 @@
             }
         }
 
-        /* 圖表容器 */
         .chart-container {
-            height: 240px;
+            height: 320px;
             width: 100%;
             position: relative;
+            margin-top: 10px;
         }
 
-        /* 表格響應式優化 */
         .table-responsive {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
-            max-height: 400px;
+            max-height: 350px;
             border-radius: 8px;
             border: 1px solid var(--border);
             width: 100%;
@@ -313,7 +307,7 @@
             border-collapse: collapse;
             font-size: 0.8rem;
             text-align: right;
-            min-width: 600px; /* 確保表格在手機上有足夠空間滾動，字不會擠成一團 */
+            min-width: 650px;
         }
 
         th {
@@ -340,14 +334,8 @@
         th:first-child, td:first-child { text-align: center; }
         th:last-child, td:last-child { text-align: center; }
 
-        .status-safe {
-            color: var(--accent-green);
-            font-weight: 600;
-        }
-        .status-danger {
-            color: var(--accent-danger);
-            font-weight: 600;
-        }
+        .status-safe { color: var(--accent-green); font-weight: 600; }
+        .status-danger { color: var(--accent-danger); font-weight: 600; }
 
         .notice-info {
             font-size: 0.7rem;
@@ -367,13 +355,13 @@
             <i class="fa-solid fa-rocket"></i>
             <h1>PRO FIRE 動態退休推估引擎</h1>
         </div>
-        <p><i class="fa-solid fa-mobile-screen-button"></i> 完美直向屏幕自適應版</p>
+        <p><i class="fa-solid fa-shield-halved"></i> 1,000次蒙地卡羅壓力模擬整合版</p>
     </header>
 
-    <!-- 左側：參數設定 -->
+    <!-- 左側參數設定 -->
     <aside>
         <div class="card">
-            <h2><i class="fa-solid fa-sliders"></i> 策略參數設定</h2>
+            <h2><i class="fa-solid fa-sliders"></i> 基礎策略參數</h2>
             
             <div class="input-grid-two-col">
                 <div class="input-group">
@@ -455,22 +443,36 @@
                     </div>
                 </div>
             </div>
+
+            <h2><i class="fa-solid fa-chart-line"></i> 蒙地卡羅波動參數</h2>
+            <div class="input-group">
+                <label>投資組合年化波動度 (標準差)</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-arrow-trend-up input-icon"></i>
+                    <input type="number" id="portfolioVolatility" value="15.0" step="0.1" inputmode="decimal">
+                    <span class="input-unit percent">%</span>
+                </div>
+            </div>
             
             <div class="notice-info">
-                <i class="fa-solid fa-circle-info"></i> 金額單位均為「萬元」，欄位支援純數字鍵盤。
+                <i class="fa-solid fa-circle-info"></i> 波動度用於模擬現實金融市場的隨機牛熊市震盪。
             </div>
         </div>
     </aside>
 
-    <!-- 右側：結果與圖表 -->
+    <!-- 右側結果展示 -->
     <main>
-        <!-- 結果摘要 -->
         <div class="card">
-            <h2><i class="fa-solid fa-chart-pie"></i> 退休推估結果</h2>
+            <h2><i class="fa-solid fa-chart-pie"></i> 綜合評估與風險壓力測試</h2>
             <div class="summary-grid">
+                <div class="summary-box monte-carlo" id="mcCard">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <div class="title">蒙地卡羅模擬成功率</div>
+                    <div class="value" id="resMonteCarlo">0%</div>
+                </div>
                 <div class="summary-box">
                     <i class="fa-solid fa-hourglass-half"></i>
-                    <div class="title">所需年數</div>
+                    <div class="title">所需年數 (精確值)</div>
                     <div class="value" id="resYears">0.0 年</div>
                 </div>
                 <div class="summary-box highlight">
@@ -480,17 +482,17 @@
                 </div>
                 <div class="summary-box">
                     <i class="fa-solid fa-sack-dollar"></i>
-                    <div class="title">目標終值 (今日)</div>
+                    <div class="title">目標終值 (今日購買力)</div>
                     <div class="value" id="resTargetToday">$0</div>
                 </div>
                 <div class="summary-box highlight">
                     <i class="fa-solid fa-hand-holding-dollar"></i>
-                    <div class="title">首年提領 (今日)</div>
+                    <div class="title">首年提領 (今日購買力)</div>
                     <div class="value" id="resFirstWithdrawalToday">$0</div>
                 </div>
             </div>
 
-            <!-- 動態折線圖 -->
+            <!-- 折線圖：整合確定路徑與隨機機率百分位線 -->
             <div class="chart-container">
                 <canvas id="wealthChart"></canvas>
             </div>
@@ -498,17 +500,17 @@
 
         <!-- 提領動態表 -->
         <div class="card">
-            <h2><i class="fa-solid fa-table"></i> 退休後資金水位模擬表</h2>
+            <h2><i class="fa-solid fa-table"></i> 預期確定性路徑・資金水位明細表</h2>
             <div class="table-responsive">
                 <table>
                     <thead>
                         <tr>
                             <th>年齡</th>
                             <th>年初資金</th>
-                            <th>當年提領 (隨通膨)</th>
-                            <th>實質購買力 (今日)</th>
-                            <th>投資利息</th>
-                            <th>年底剩餘</th>
+                            <th>當年提領 (隨通膨遞增)</th>
+                            <th>實質購買力 (等值今日)</th>
+                            <th>預期有利息</th>
+                            <th>年底剩餘資金</th>
                             <th>狀態</th>
                         </tr>
                     </thead>
@@ -529,6 +531,15 @@
         return '$' + Math.round(value);
     };
 
+    // Box-Muller 轉換產生常態分佈隨機數
+    function gaussianRandom(mean, std) {
+        let u = 0, v = 0;
+        while(u === 0) u = Math.random();
+        while(v === 0) v = Math.random();
+        let num = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+        return num * std + mean;
+    }
+
     let wealthChart = null;
 
     function initChart() {
@@ -539,29 +550,63 @@
             type: 'line',
             data: {
                 labels: [],
-                datasets: [{
-                    label: '年底剩餘資金',
-                    data: [],
-                    borderColor: '#06b6d4',
-                    backgroundColor: 'rgba(6, 182, 212, 0.05)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.2,
-                    pointRadius: 0,
-                    pointHitRadius: 15,
-                }]
+                datasets: [
+                    {
+                        label: '預期規劃路徑 (均值)',
+                        data: [],
+                        borderColor: '#06b6d4',
+                        borderWidth: 2.5,
+                        fill: false,
+                        tension: 0.2,
+                        pointRadius: 0
+                    },
+                    {
+                        label: '市場樂觀前 10% 情況 (P90)',
+                        data: [],
+                        borderColor: '#10b981',
+                        borderWidth: 1.5,
+                        borderDash: [4, 4],
+                        fill: false,
+                        tension: 0.2,
+                        pointRadius: 0
+                    },
+                    {
+                        label: '市場中位數常態情況 (P50)',
+                        data: [],
+                        borderColor: '#3b82f6',
+                        borderWidth: 1.5,
+                        borderDash: [3, 3],
+                        fill: false,
+                        tension: 0.2,
+                        pointRadius: 0
+                    },
+                    {
+                        label: '市場極端惡劣 10% 情況 (P10)',
+                        data: [],
+                        borderColor: '#f43f5e',
+                        borderWidth: 1.5,
+                        borderDash: [4, 4],
+                        fill: false,
+                        tension: 0.2,
+                        pointRadius: 0
+                    }
+                ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { display: false },
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: { boxWidth: 12, padding: 10, font: { size: 10 } }
+                    },
                     tooltip: {
                         mode: 'index',
                         intersect: false,
                         callbacks: {
                             label: function(context) {
-                                return ' 剩餘資金: ' + formatCurrency(context.parsed.y);
+                                return context.dataset.label + ': ' + formatCurrency(context.parsed.y);
                             }
                         }
                     }
@@ -587,9 +632,11 @@
         const inflationRate = (parseFloat(document.getElementById('inflationRate').value) || 0) / 100;
         const withdrawalRate = (parseFloat(document.getElementById('withdrawalRate').value) || 0) / 100;
         const postRetirementReturn = (parseFloat(document.getElementById('postRetirementReturn').value) || 0) / 100;
+        const volatility = (parseFloat(document.getElementById('portfolioVolatility').value) || 0) / 100;
         
         const lifeExpectancy = parseFloat(document.getElementById('lifeExpectancy').value) || 0;
 
+        // 1. 計算確定性模型所需年數
         let yearsToTarget = 0;
         if (currentAsset < targetAsset) {
             if (portfolioReturn > 0) {
@@ -605,71 +652,162 @@
         }
 
         const retirementAge = currentAge + yearsToTarget;
+        const totalTimelineYears = Math.ceil(lifeExpectancy - currentAge);
+
+        // 阻斷不合常理的基礎參數
+        if (!isFinite(retirementAge) || retirementAge > lifeExpectancy || totalTimelineYears <= 0) {
+            document.getElementById('resYears').innerText = '無法達成';
+            document.getElementById('resRetireAge').innerText = '-';
+            document.getElementById('resMonteCarlo').innerText = '0%';
+            document.getElementById('tableBody').innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 25px; color: var(--accent-danger);">無法在預估壽命內達標，請檢視或調高策略參數。</td></tr>';
+            if(wealthChart) {
+                for(let d of wealthChart.data.datasets) d.data = [];
+                wealthChart.data.labels = [];
+                wealthChart.update();
+            }
+            return;
+        }
+
         const targetInTodayMoney = targetAsset / Math.pow(1 + inflationRate, yearsToTarget);
         const firstYearWithdrawal = targetAsset * withdrawalRate;
         const firstYearWithdrawalToday = firstYearWithdrawal / Math.pow(1 + inflationRate, yearsToTarget);
 
-        document.getElementById('resYears').innerText = isFinite(yearsToTarget) ? `${yearsToTarget.toFixed(1)} 年` : '無法達成';
-        document.getElementById('resRetireAge').innerText = isFinite(retirementAge) ? `${retirementAge.toFixed(1)} 歲` : '-';
-        document.getElementById('resTargetToday').innerText = isFinite(targetInTodayMoney) ? formatCurrency(targetInTodayMoney) : '-';
-        document.getElementById('resFirstWithdrawalToday').innerText = isFinite(firstYearWithdrawalToday) ? formatCurrency(firstYearWithdrawalToday) : '-';
+        document.getElementById('resYears').innerText = `${yearsToTarget.toFixed(1)} 年`;
+        document.getElementById('resRetireAge').innerText = `${retirementAge.toFixed(1)} 歲`;
+        document.getElementById('resTargetToday').innerText = formatCurrency(targetInTodayMoney);
+        document.getElementById('resFirstWithdrawalToday').innerText = formatCurrency(firstYearWithdrawalToday);
 
-        const tbody = document.getElementById('tableBody');
-        tbody.innerHTML = '';
-        
-        let chartLabels = [];
-        let chartData = [];
+        // 2. 蒙地卡羅 1,000 次隨機路徑壓力模擬
+        const iterations = 1000;
+        let successCount = 0;
+        let allPaths = [];
 
-        if (!isFinite(retirementAge) || retirementAge > lifeExpectancy) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 25px; color: var(--accent-danger);">無法在預估壽命內達標，請檢視參數設定。</td></tr>';
-            if(wealthChart) { wealthChart.data.labels = []; wealthChart.data.datasets[0].data = []; wealthChart.update(); }
-            return;
-        }
+        for (let i = 0; i < iterations; i++) {
+            let simBalance = currentAsset;
+            let simWithdrawal = 0;
+            let singlePath = [simBalance];
 
-        let startAge = Math.floor(retirementAge);
-        let balance = targetAsset;
-        let currentWithdrawal = firstYearWithdrawal;
-        let htmlContent = '';
+            for (let y = 1; y <= totalTimelineYears; y++) {
+                let age = currentAge + y;
 
-        for (let age = startAge; age <= lifeExpectancy; age++) {
-            const withdrawalToday = currentWithdrawal / Math.pow(1 + inflationRate, (age - currentAge));
-            const returnAmount = Math.max(0, balance - currentWithdrawal) * postRetirementReturn;
-            const endBalance = balance - currentWithdrawal + returnAmount;
-            
-            const isSafe = endBalance > 0;
-            const statusLabel = isSafe ? '<span class="status-safe">Safe</span>' : '<span class="status-danger">耗盡</span>';
-
-            htmlContent += `
-                <tr>
-                    <td>${age}</td>
-                    <td>${formatCurrency(Math.max(0, balance))}</td>
-                    <td style="color: var(--accent-danger);">${formatCurrency(currentWithdrawal)}</td>
-                    <td style="color: var(--accent-warning);">${formatCurrency(withdrawalToday)}</td>
-                    <td style="color: var(--accent-green);">${formatCurrency(returnAmount)}</td>
-                    <td style="font-weight: 700;">${formatCurrency(Math.max(0, endBalance))}</td>
-                    <td>${statusLabel}</td>
-                </tr>
-            `;
-
-            chartLabels.push(age + '歲');
-            chartData.push(Math.max(0, endBalance));
-
-            balance = endBalance;
-            currentWithdrawal = currentWithdrawal * (1 + inflationRate);
-        }
-
-        tbody.innerHTML = htmlContent;
-
-        if(wealthChart) {
-            wealthChart.data.labels = chartLabels;
-            wealthChart.data.datasets[0].data = chartData;
-            if (chartData[chartData.length - 1] <= 0) {
-                wealthChart.data.datasets[0].borderColor = '#f43f5e';
-                wealthChart.data.datasets[0].backgroundColor = 'rgba(244, 63, 94, 0.05)';
-            } else {
-                wealthChart.data.datasets[0].borderColor = '#06b6d4';
-                wealthChart.data.datasets[0].backgroundColor = 'rgba(6, 182, 212, 0.05)';
+                if (age <= retirementAge) {
+                    // 累積期：資產隨機增長 + 每年再投入
+                    let r = gaussianRandom(portfolioReturn, volatility);
+                    simBalance = simBalance * (1 + r) + annualInvestment;
+                } else {
+                    // 退休提領期：扣除隨通膨調整的提領金 + 剩餘資金隨機增長
+                    if (simWithdrawal === 0) {
+                        simWithdrawal = firstYearWithdrawal; 
+                    }
+                    simBalance = simBalance - simWithdrawal;
+                    
+                    if (simBalance > 0) {
+                        // 退休後一般而言波動度會隨保守配置下降，此處乘上 0.8
+                        let r = gaussianRandom(postRetirementReturn, volatility * 0.8);
+                        simBalance = simBalance * (1 + r);
+                    } else {
+                        simBalance = 0;
+                    }
+                    simWithdrawal = simWithdrawal * (1 + inflationRate);
+                }
+                singlePath.push(Math.max(0, simBalance));
             }
+            allPaths.push(singlePath);
+            // 若到預估壽命終點時資產仍大於 0，視為模擬成功
+            if (singlePath[singlePath.length - 1] > 0) {
+                successCount++;
+            }
+        }
+
+        // 計算並動態渲染蒙地卡羅成功率
+        const successRate = (successCount / iterations) * 100;
+        const mcValue = document.getElementById('resMonteCarlo');
+        const mcCard = document.getElementById('mcCard');
+        mcValue.innerText = successRate.toFixed(1) + '%';
+        
+        if (successRate >= 80) {
+            mcCard.style.borderColor = 'var(--accent-green)';
+            mcValue.style.color = 'var(--accent-green)';
+        } else if (successRate >= 50) {
+            mcCard.style.borderColor = 'var(--accent-warning)';
+            mcValue.style.color = 'var(--accent-warning)';
+        } else {
+            mcCard.style.borderColor = 'var(--accent-danger)';
+            mcValue.style.color = 'var(--accent-danger)';
+        }
+
+        // 3. 提取蒙地卡羅各年份的機率百分位數 (P10, P50, P90)
+        let p10Data = [], p50Data = [], p90Data = [], chartLabels = [];
+        for (let y = 0; y <= totalTimelineYears; y++) {
+            let yearBalances = [];
+            for (let i = 0; i < iterations; i++) {
+                yearBalances.push(allPaths[i][y]);
+            }
+            yearBalances.sort((a, b) => a - b);
+            p10Data.push(yearBalances[100]); // 惡劣市場 (P10)
+            p50Data.push(yearBalances[500]); // 中位常態 (P50)
+            p90Data.push(yearBalances[900]); // 樂觀市場 (P90)
+            chartLabels.push(Math.round(currentAge + y) + '歲');
+        }
+
+        // 4. 計算預期確定性路徑（用於生成下方的表格，並畫在圖表上作為對比基準）
+        let detBalance = currentAsset;
+        let detData = [detBalance];
+        let detWithdrawal = 0;
+        let tbodyContent = '';
+
+        let startRetireAge = Math.floor(retirementAge);
+
+        for (let y = 1; y <= totalTimelineYears; y++) {
+            let age = currentAge + y;
+            let currentWithdrawalRow = 0;
+            let withdrawalTodayRow = 0;
+            let returnAmountRow = 0;
+            let startBalanceRow = detBalance;
+
+            if (age <= retirementAge) {
+                detBalance = detBalance * (1 + portfolioReturn) + annualInvestment;
+                detData.push(detBalance);
+            } else {
+                if (detWithdrawal === 0) { detWithdrawal = firstYearWithdrawal; }
+                currentWithdrawalRow = detWithdrawal;
+                withdrawalTodayRow = detWithdrawal / Math.pow(1 + inflationRate, y);
+                
+                detBalance = detBalance - detWithdrawal;
+                if (detBalance > 0) {
+                    returnAmountRow = detBalance * postRetirementReturn;
+                    detBalance = detBalance + returnAmountRow;
+                } else {
+                    detBalance = 0;
+                }
+                detData.push(detBalance);
+                detWithdrawal = detWithdrawal * (1 + inflationRate);
+
+                // 只將「退休後」的詳細數據塞入網頁下方的水位明細表，維持排版精簡
+                let isSafe = detBalance > 0;
+                let statusLabel = isSafe ? '<span class="status-safe">Safe</span>' : '<span class="status-danger">耗盡</span>';
+                tbodyContent += `
+                    <tr>
+                        <td>${age}</td>
+                        <td>${formatCurrency(Math.max(0, startBalanceRow))}</td>
+                        <td style="color: var(--accent-danger);">${formatCurrency(currentWithdrawalRow)}</td>
+                        <td style="color: var(--accent-warning);">${formatCurrency(withdrawalTodayRow)}</td>
+                        <td style="color: var(--accent-green);">${formatCurrency(returnAmountRow)}</td>
+                        <td style="font-weight: 700;">${formatCurrency(Math.max(0, detBalance))}</td>
+                        <td>${statusLabel}</td>
+                    </tr>
+                `;
+            }
+        }
+        document.getElementById('tableBody').innerHTML = tbodyContent;
+
+        // 5. 更新 Chart.js 多線段數據
+        if (wealthChart) {
+            wealthChart.data.labels = chartLabels;
+            wealthChart.data.datasets[0].data = detData; // 確定性規劃線
+            wealthChart.data.datasets[1].data = p90Data; // 樂觀前 10%
+            wealthChart.data.datasets[2].data = p50Data; // 中位數
+            wealthChart.data.datasets[3].data = p10Data; // 惡劣前 10%
             wealthChart.update();
         }
     }
