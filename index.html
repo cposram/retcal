@@ -1,0 +1,2189 @@
+
+和 Gemini 的對話
+' =======================================================
+
+' 全自動 API 退休推估儀表板 (修復亂碼與台股代號防呆版)
+
+' =======================================================
+
+
+
+Global FX_Rate As Double ' 全域變數快取匯率
+
+
+
+Sub BuildUltimateDashboard()
+
+    Dim wb As Workbook
+
+    Dim ws1 As Worksheet, ws2 As Worksheet
+
+    Dim cht As ChartObject
+
+    Dim i As Integer, r As Integer
+
+    Dim btn As Button
+
+    
+
+    Set wb = ActiveWorkbook
+
+    
+
+    Application.ScreenUpdating = False
+
+    Application.DisplayAlerts = False
+
+    
+
+    On Error Resume Next
+
+    wb.Sheets("1_投資組合與市值").Delete
+
+    wb.Sheets("2_動態退休推估").Delete
+
+    On Error GoTo 0
+
+    
+
+    ' ==========================================
+
+    ' 第一頁：投資組合與市值
+
+    ' ==========================================
+
+    Set ws1 = wb.Sheets.Add(Before:=wb.Sheets(1))
+
+    ws1.Name = "1_投資組合與市值"
+
+    ActiveWindow.DisplayGridlines = False
+
+    
+
+    ' 強制 A 欄為純文字格式，避免 006208 被切成 6208
+
+    ws1.Columns("A").NumberFormat = "@"
+
+    
+
+    Dim headers1 As Variant
+
+    headers1 = Array("股票代號", "標的名稱", "庫存股數", "目前股價 (自動)", "目前市值", "資產佔比", "預估年化報酬率")
+
+    For i = 0 To UBound(headers1)
+
+        ws1.Cells(1, i + 1).Value = headers1(i)
+
+    Next i
+
+    
+
+    ' 直接以字串格式寫入，保護 0 開頭的代號
+
+    ws1.Range("A2:G2").Value = Array("VT", "全世界股票", 43.15, 0, "=C2*D2", "=IF($E$13>0, E2/$E$13, 0)", 0.08)
+
+    ws1.Range("A3:G3").Value = Array("VOO", "S&P 500", 3.55, 0, "=C3*D3", "=IF($E$13>0, E3/$E$13, 0)", 0.09)
+
+    ws1.Range("A4:G4").Value = Array("0050", "元大台50", 923, 0, "=C4*D4", "=IF($E$13>0, E4/$E$13, 0)", 0.08)
+
+    ws1.Range("A5:G5").Value = Array("006208", "富邦台50", 24077, 0, "=C5*D5", "=IF($E$13>0, E5/$E$13, 0)", 0.08)
+
+    ws1.Range("A6:G6").Value = Array("2412", "中華電", 11560, 0, "=C6*D6", "=IF($E$13>0, E6/$E$13, 0)", 0.04)
+
+    ws1.Range("A7:G7").Value = Array("2330", "台積電", 539, 0, "=C7*D7", "=IF($E$13>0, E7/$E$13, 0)", 0.12)
+
+    ws1.Range("A8:G8").Value = Array("2886", "兆豐金", 2000, 0, "=C8*D8", "=IF($E$13>0, E8/$E$13, 0)", 0.05)
+
+    ws1.Range("A9:G9").Value = Array("00878", "國泰高股息", 6000, 0, "=C9*D9", "=IF($E$13>0, E9/$E$13, 0)", 0.06)
+
+    ws1.Range("A10:G10").Value = Array("00675L", "富邦台加權正二", 2000, 0, "=C10*D10", "=IF($E$13>0, E10/$E$13, 0)", 0.15)
+
+    ws1.Range("A11:G11").Value = Array("00757", "統一FANG+", 1000, 0, "=C11*D11", "=IF($E$13>0, E11/$E$13, 0)", 0.12)
+
+    
+
+    ws1.Range("A13:G13").Value = Array("", "總計 / 投資組合加權報酬", "", "", "=SUM(E2:E11)", 1, "=SUMPRODUCT(F2:F11,G2:G11)")
+
+    
+
+    With ws1.Range("A1:G1")
+
+        .Interior.Color = RGB(44, 62, 80)
+
+        .Font.Color = RGB(255, 255, 255)
+
+        .Font.Bold = True
+
+        .HorizontalAlignment = xlCenter
+
+    End With
+
+    
+
+    ws1.Range("C2:D11").NumberFormat = "#,##0.00"
+
+    ws1.Range("E2:E13").NumberFormat = "$#,##0"
+
+    ws1.Range("F2:F13, G2:G13").NumberFormat = "0.0%"
+
+    ws1.Range("A2:G13").HorizontalAlignment = xlCenter
+
+    ws1.Range("D2:D11").Interior.Color = RGB(232, 248, 245)
+
+    ws1.Range("C2:C11, G2:G11").Interior.Color = RGB(255, 249, 196)
+
+    ws1.Range("A13:G13").Interior.Color = RGB(213, 216, 220)
+
+    ws1.Range("A13:G13").Font.Bold = True
+
+    ws1.Range("A1:G11").Borders.LineStyle = xlContinuous
+
+    ws1.Range("A13:G13").Borders.LineStyle = xlContinuous
+
+    
+
+    ws1.Columns("A:B").ColumnWidth = 15
+
+    ws1.Columns("C:D").ColumnWidth = 15
+
+    ws1.Columns("E").ColumnWidth = 18
+
+    ws1.Columns("F").ColumnWidth = 12
+
+    ws1.Columns("G").ColumnWidth = 18
+
+    
+
+    ' 按鈕移除了亂碼，改為純文字
+
+    Set btn = ws1.Buttons.Add(Left:=550, Top:=15, Width:=150, Height:=35)
+
+    btn.Caption = "一鍵更新最新股價"
+
+    btn.OnAction = "RefreshPricesAPI"
+
+    btn.Font.Bold = True
+
+    
+
+    Set cht = ws1.ChartObjects.Add(Left:=ws1.Range("A15").Left, Top:=ws1.Range("A15").Top, Width:=400, Height:=250)
+
+    cht.Chart.ChartType = xlPie
+
+    cht.Chart.SetSourceData Source:=ws1.Range("B1:B11,E1:E11")
+
+    cht.Chart.HasTitle = True
+
+    cht.Chart.ChartTitle.Text = "投資組合市值佔比"
+
+    
+
+    ' ==========================================
+
+    ' 第二頁：動態退休推估
+
+    ' ==========================================
+
+    Set ws2 = wb.Sheets.Add(After:=ws1)
+
+    ws2.Name = "2_動態退休推估"
+
+    ActiveWindow.DisplayGridlines = False
+
+    
+
+    ws2.Range("A1:B1").Merge
+
+    ws2.Range("A1").Value = "一、退休目標與參數設定 (黃底可修改)"
+
+    ws2.Range("A1").Interior.Color = RGB(44, 62, 80)
+
+    ws2.Range("A1").Font.Color = RGB(255, 255, 255)
+
+    ws2.Range("A1").Font.Bold = True
+
+    
+
+    Dim inputsLabel As Variant, inputsVal As Variant
+
+    inputsLabel = Array("目前年齡", "目標資產終值 (想存到多少錢)", "預計每年再投入金額 (不含股息)", "預估通貨膨脹率", "退休後提領率 (安全提領)", "退休後保守年化報酬率", "預估壽命", "目前投資組合總市值 (連動)", "投資組合加權年化報酬率 (連動)")
+
+    inputsVal = Array(35, 30000000, 600000, 0.02, 0.04, 0.04, 85, "='1_投資組合與市值'!E13", "='1_投資組合與市值'!G13")
+
+    
+
+    For i = 0 To UBound(inputsLabel)
+
+        ws2.Cells(i + 2, 1).Value = inputsLabel(i)
+
+        ws2.Cells(i + 2, 2).Value = inputsVal(i)
+
+        If i < 7 Then
+
+            ws2.Cells(i + 2, 2).Interior.Color = RGB(255, 249, 196)
+
+        Else
+
+            ws2.Cells(i + 2, 1).Font.Color = RGB(41, 128, 185)
+
+            ws2.Cells(i + 2, 2).Interior.Color = RGB(236, 240, 241)
+
+        End If
+
+    Next i
+
+    
+
+    ws2.Range("D1:E1").Merge
+
+    ws2.Range("D1").Value = "二、退休推估結果 (自動計算)"
+
+    ws2.Range("D1").Interior.Color = RGB(39, 174, 96)
+
+    ws2.Range("D1").Font.Color = RGB(255, 255, 255)
+
+    ws2.Range("D1").Font.Bold = True
+
+    
+
+    Dim outputsLabel As Variant, outputsFormula As Variant
+
+    outputsLabel = Array("距離達標所需年數", "推估可退休年齡", "目標終值【等值今日購買力】", "退休第一年可提領金額", "首年提領【等值今日購買力】")
+
+    outputsFormula = Array("=IFERROR(ROUNDUP(NPER(B10, -B4, -B9, B3), 1), 0)", "=IFERROR(B2+E2, 0)", "=IFERROR(B3 / ((1+B5)^E2), 0)", "=IFERROR(B3 * B6, 0)", "=IFERROR(E5 / ((1+B5)^E2), 0)")
+
+    
+
+    For i = 0 To UBound(outputsLabel)
+
+        ws2.Cells(i + 2, 4).Value = outputsLabel(i)
+
+        ws2.Cells(i + 2, 5).Formula = outputsFormula(i)
+
+        ws2.Cells(i + 2, 5).Interior.Color = RGB(232, 248, 245)
+
+    Next i
+
+    
+
+    ws2.Range("B2, B8, E2:E3").NumberFormat = "0.0"
+
+    ws2.Range("B3:B4, B9, E4:E6").NumberFormat = "$#,##0"
+
+    ws2.Range("B5:B7, B10").NumberFormat = "0.0%"
+
+    ws2.Range("A2:B10, D2:E6").Borders.LineStyle = xlContinuous
+
+    ws2.Range("A2:A10, D2:D6").Font.Bold = True
+
+    
+
+    ws2.Columns("A").ColumnWidth = 30
+
+    ws2.Columns("B").ColumnWidth = 20
+
+    ws2.Columns("D").ColumnWidth = 25
+
+    ws2.Columns("E").ColumnWidth = 22
+
+    
+
+    Application.ScreenUpdating = True
+
+    wb.Activate
+
+    
+
+    ws1.Activate
+
+    ws1.Range("C2").Select
+
+    ActiveWindow.FreezePanes = True
+
+    
+
+    ws2.Activate
+
+    ws2.Range("B2").Select
+
+    
+
+    Application.DisplayAlerts = True
+
+    Call RefreshPricesAPI
+
+End Sub
+
+
+
+' =======================================================
+
+' API 更新主程式
+
+' =======================================================
+
+Sub RefreshPricesAPI()
+
+    Dim ws As Worksheet
+
+    Dim i As Integer
+
+    Dim ticker As String
+
+    Dim price As Double
+
+    
+
+    On Error Resume Next
+
+    Set ws = ThisWorkbook.Sheets("1_投資組合與市值")
+
+    On Error GoTo 0
+
+    
+
+    If ws Is Nothing Then Exit Sub
+
+    
+
+    Application.ScreenUpdating = False
+
+    Application.StatusBar = "正在連線 Yahoo API 抓取最新股價與匯率..."
+
+    
+
+    FX_Rate = 0
+
+    
+
+    ' 支援最高掃描到第30列，方便您隨時插入新股票
+
+    For i = 2 To 30
+
+        ticker = CStr(ws.Cells(i, 1).Value)
+
+        If ticker = "" Or InStr(ticker, "總計") > 0 Then Exit For
+
+        
+
+        price = GetStockPriceTWD(ticker)
+
+        If price > 0 Then
+
+            ws.Cells(i, 4).Value = price
+
+        End If
+
+    Next i
+
+    
+
+    Application.StatusBar = False
+
+    Application.ScreenUpdating = True
+
+    MsgBox "股價更新完成！介面已煥然一新。", vbInformation, "API 更新成功"
+
+End Sub
+
+
+
+' =======================================================
+
+' 台美股精準辨識防呆引擎 (解決 00675L 與去 0 問題)
+
+' =======================================================
+
+Function GetStockPriceTWD(ticker As String) As Double
+
+    Dim tickerCode As String
+
+    Dim isUSD As Boolean
+
+    Dim price As Double
+
+    
+
+    ticker = Trim(ticker)
+
+    
+
+    ' 自動幫被 Excel 偷去 0 的常見 ETF 補血
+
+    If ticker = "50" Then ticker = "0050"
+
+    If ticker = "6208" Then ticker = "006208"
+
+    If ticker = "878" Then ticker = "00878"
+
+    If ticker = "757" Then ticker = "00757"
+
+    If ticker = "929" Then ticker = "00929"
+
+    If ticker = "713" Then ticker = "00713"
+
+    If ticker = "675L" Then ticker = "00675L"
+
+    
+
+    ' 核心判定邏輯：只要第一個字元是數字，就是台股
+
+    If IsNumeric(Left(ticker, 1)) Then
+
+        tickerCode = ticker & ".TW"
+
+        isUSD = False
+
+    Else
+
+        ' 開頭是英文字母，視為美股
+
+        tickerCode = UCase(ticker)
+
+        isUSD = True
+
+    End If
+
+    
+
+    price = FetchYahooPrice(tickerCode)
+
+    
+
+    ' 若為美股，去抓匯率轉台幣
+
+    If isUSD And price > 0 Then
+
+        If FX_Rate = 0 Then FX_Rate = FetchYahooPrice("TWD=X")
+
+        If FX_Rate > 0 Then
+
+            price = price * FX_Rate
+
+        End If
+
+    End If
+
+    
+
+    GetStockPriceTWD = price
+
+End Function
+
+
+
+' =======================================================
+
+' 核心 JSON 解析爬蟲函數
+
+' =======================================================
+
+Function FetchYahooPrice(tickerCode As String) As Double
+
+    Dim http As Object
+
+    Dim url As String
+
+    Dim response As String
+
+    Dim startPos As Long, endPos As Long
+
+    
+
+    url = "https://query1.finance.yahoo.com/v8/finance/chart/" & tickerCode
+
+    
+
+    Set http = CreateObject("MSXML2.XMLHTTP")
+
+    On Error Resume Next
+
+    http.Open "GET", url, False
+
+    http.setRequestHeader "User-Agent", "Mozilla/5.0"
+
+    http.send
+
+    
+
+    If http.Status = 200 Then
+
+        response = http.responseText
+
+        startPos = InStr(response, """regularMarketPrice"":")
+
+        If startPos > 0 Then
+
+            startPos = startPos + 21
+
+            endPos = InStr(startPos, response, ",")
+
+            If endPos = 0 Then endPos = InStr(startPos, response, "}")
+
+            FetchYahooPrice = Val(Mid(response, startPos, endPos - startPos))
+
+        Else
+
+            FetchYahooPrice = 0
+
+        End If
+
+    Else
+
+        FetchYahooPrice = 0
+
+    End If
+
+    On Error GoTo 0
+
+End Function
+
+
+
+
+
+為什麼我增加一個列 結果那列的股價沒有自動試算
+
+如果要增標的也會自動運算我增加的那個標的的 價格 部位 市值
+
+這是一個非常典型且實用的 Excel VBA 問題。之所以你手動增加一列後，那功能無法「自動試算」價格、市值與部位，主要有以下 三個核心原因：
+
+為什麼原本的寫法會失效？
+VBA 程式的「中斷條件」被觸發：
+在原本的 RefreshPricesAPI 程式碼中，有一行寫著：
+If ticker = "" Or InStr(ticker, "總計") > 0 Then Exit For
+如果你是在原本的第 11 列（統一FANG+）下面直接打字，第 12 列原本是空白的（ticker = ""），程式跑到第 12 列就會直接跳出循環（Exit For），完全不會去讀取你新加的資料。
+
+新增加的列缺少 Excel 公式：
+原程式的「目前市值（E欄）」和「資產佔比（F欄）」公式是在第一次執行 BuildUltimateDashboard 時硬編碼寫進去的。當你手動插入新的一列時，E 欄和 F 欄是完全空白的，沒有 =C12*D12 這樣的公式，所以就算抓到股價也不會計算。
+
+總計範圍與圖表範圍被寫死：
+原本的總計公式被寫死在 =SUM(E2:E11)，圓餅圖也只抓到第 11 列。
+
+💡 最佳解決方案：升級為「智慧動態偵測版」
+我們不需要重新執行整套 Dashboard 建立程式（那會重置整張表），只需要把負責按鈕更新的 RefreshPricesAPI 程式碼進行升級。
+
+升級後的程式會自動做這些事：
+
+自動尋找「總計」列的位置，不論你中間插了多少股票、有沒有空白行，它都能精準辨識。
+
+全自動補齊公式：只要偵測到你有填寫「股票代號」，它就會自動幫你在該列寫入市值公式（庫存*股價）和資產佔比公式。
+
+動態更新總計與圓餅圖：自動把新加入的股票納入總計範圍，並同步更新圓餅圖。
+
+請用以下這段新代碼，取代你原本的 RefreshPricesAPI 主程式：
+VBA
+' =======================================================
+' 動態智慧更新主程式 (支援自動新增標的、自動補齊公式與圖表)
+' =======================================================
+Sub RefreshPricesAPI()
+    Dim ws As Worksheet
+    Dim i As Integer
+    Dim ticker As String
+    Dim price As Double
+    Dim totalRow As Integer
+    
+    On Error Resume Next
+    Set ws = ThisWorkbook.Sheets("1_投資組合與市值")
+    On Error GoTo 0
+    
+    If ws Is Nothing Then Exit Sub
+    
+    Application.ScreenUpdating = False
+    Application.StatusBar = "正在連線 Yahoo API 抓取最新股價與匯率並動態配置..."
+    
+    ' 1. 動態尋找「總計」到底在哪一列
+    totalRow = 0
+    For i = 2 To 100
+        If InStr(ws.Cells(i, 2).Value, "總計") > 0 Then
+            totalRow = i
+            Exit For
+        End If
+    Next i
+    
+    ' 防呆：如果找不到總計（可能不小心被刪除），就預設在最後一行建立
+    If totalRow = 0 Then
+        totalRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row + 1
+        ws.Cells(totalRow, 2).Value = "總計 / 投資組合加權報酬"
+    End If
+    
+    FX_Rate = 0
+    
+    ' 2. 掃描從第 2 列到「總計」前一列的所有標的
+    For i = 2 To totalRow - 1
+        ticker = Trim(CStr(ws.Cells(i, 1).Value))
+        
+        ' 如果這列有填寫股票代號，就進行更新並自動補齊公式與樣式
+        If ticker <> "" Then
+            ' 補齊【目前市值】公式 (庫存 * 股價)
+            ws.Cells(i, 5).Formula = "=C" & i & "*D" & i
+            
+            ' 補齊【資產佔比】公式 (鎖定動態總計那一列的E欄)
+            ws.Cells(i, 6).Formula = "=IF($E$" & totalRow & ">0, E" & i & "/$E$" & totalRow & ", 0)"
+            
+            ' 呼叫 API 抓取最新股價
+            price = GetStockPriceTWD(ticker)
+            If price > 0 Then
+                ws.Cells(i, 4).Value = price
+            End If
+            
+            ' 自動美化新插入列的格式與框線
+            ws.Cells(i, 4).NumberFormat = "#,##0.00"
+            ws.Cells(i, 5).NumberFormat = "$#,##0"
+            ws.Cells(i, 6).NumberFormat = "0.0%"
+            ws.Cells(i, 7).NumberFormat = "0.0%"
+            ws.Cells(i, 4).Interior.Color = RGB(232, 248, 245) ' 股價綠底
+            ws.Range(ws.Cells(i, 1), ws.Cells(i, 7)).Borders.LineStyle = xlContinuous
+            ws.Range(ws.Cells(i, 1), ws.Cells(i, 7)).HorizontalAlignment = xlCenter
+        End If
+    Next i
+    
+    ' 3. 動態更新「總計列」的公式，確保新加入的列100%被納入計算
+    ws.Cells(totalRow, 5).Formula = "=SUM(E2:E" & (totalRow - 1) & ")"
+    ws.Cells(totalRow, 6).Value = 1 ' 總計佔比 100%
+    ws.Cells(totalRow, 7).Formula = "=SUMPRODUCT(F2:F" & (totalRow - 1) & ",G2:G" & (totalRow - 1) & ")"
+    
+    ' 4. 自動更新「圓餅圖」的數據範圍，讓新標的自動出現在圖表上
+    Dim cht As ChartObject
+    If ws.ChartObjects.Count > 0 Then
+        Set cht = ws.ChartObjects(1)
+        cht.Chart.SetSourceData Source:=ws.Range("B1:B" & (totalRow - 1) & ",E1:E" & (totalRow - 1))
+    End If
+    
+    Application.StatusBar = False
+    Application.ScreenUpdating = True
+    MsgBox "股價更新完成！新標的公式、總計與圓餅圖已全自動同步。 ", vbInformation, "API 動態更新成功"
+End Sub
+🛠️ 如何操作使用？
+在 Excel 中按下鍵盤的 Alt + F11 打開 VBA 視窗。
+
+在左側找到你的專案模組（通常在 Modules / 模組1 裡面）。
+
+找到舊的 Sub RefreshPricesAPI()，將其全部刪除，並把上面這段新的程式碼貼上去。
+
+回到 Excel 工作表，以後如果你想增加新股票：
+
+步驟 A：在「總計」上方那一列（以你的圖為例，就是第 12 列），依序填入：股票代號（A欄）、標的名稱（B欄）、庫存股數（C欄）、預估年化報酬率（G欄）。
+
+步驟 B：直接按下「一鍵更新最新股價」按鈕。
+
+程式就會在一秒內把：最新股價（自動抓）、目前市值（自動生成公式）、資產佔比（自動鎖定總計） 全部算好，連下面的總計加權和左邊的圓餅圖都會自動延伸擴大！
+
+不對喔 我漢來美食那個是我新增的 但沒有自動更新最新股價
+
+從您提供的截圖中，我立刻看出問題出在哪裡了！這是一個非常精準的「台股特有現象」！
+
+您新增的標的是 1268（漢來美食），它的股價之所以抓不到，是因為它是一檔「上櫃股票（OTC）」，而不是「上市股票」。
+
+在 Yahoo Finance 的 API 資料庫中：
+
+上市股票的代號後綴是 .TW（例如台積電是 2330.TW）
+
+上櫃股票的代號後綴是 .TWO（例如漢來美食必須是 1268.TWO）
+
+原本的程式碼預設所有數字開頭的股票都是「上市 (.TW)」，所以它去 Yahoo 查詢 1268.TW 時找不到資料，股價就回傳了 0。
+
+💡 解決方案：為引擎加入「上櫃股票自動偵測與重試」功能
+我們不需要您手動去加上 .TWO，我們直接讓 VBA 變聰明：如果用上市代號抓不到價格，就自動切換成上櫃代號再抓一次！
+
+請您回到 VBA 編輯器，找到最下方的 Function GetStockPriceTWD(ticker As String) As Double 這段程式碼，把這整個 Function 替換成下面這段升級版：
+
+VBA
+' =======================================================
+' 台美股精準辨識防呆引擎 (新增「上櫃股票 .TWO」自動偵測機制)
+' =======================================================
+Function GetStockPriceTWD(ticker As String) As Double
+    Dim tickerCode As String
+    Dim isUSD As Boolean
+    Dim price As Double
+    
+    ticker = Trim(ticker)
+    
+    ' 自動幫被 Excel 偷去 0 的常見 ETF 補血
+    If ticker = "50" Then ticker = "0050"
+    If ticker = "6208" Then ticker = "006208"
+    If ticker = "878" Then ticker = "00878"
+    If ticker = "757" Then ticker = "00757"
+    If ticker = "929" Then ticker = "00929"
+    If ticker = "713" Then ticker = "00713"
+    If ticker = "675L" Then ticker = "00675L"
+    
+    ' 核心判定邏輯：只要第一個字元是數字，就是台股
+    If IsNumeric(Left(ticker, 1)) Then
+        ' 步驟 1：先預設為「上市股票 (.TW)」去抓取
+        tickerCode = ticker & ".TW"
+        isUSD = False
+        price = FetchYahooPrice(tickerCode)
+        
+        ' 步驟 2：【智慧重試機制】如果是 0，代表可能是「上櫃股票 (.TWO)」
+        If price = 0 Then
+            tickerCode = ticker & ".TWO"
+            price = FetchYahooPrice(tickerCode)
+        End If
+    Else
+        ' 開頭是英文字母，視為美股
+        tickerCode = UCase(ticker)
+        isUSD = True
+        price = FetchYahooPrice(tickerCode)
+    End If
+    
+    ' 若為美股，去抓匯率轉台幣
+    If isUSD And price > 0 Then
+        If FX_Rate = 0 Then FX_Rate = FetchYahooPrice("TWD=X")
+        If FX_Rate > 0 Then
+            price = price * FX_Rate
+        End If
+    End If
+    
+    GetStockPriceTWD = price
+End Function
+🛠️ 替換後的下一步：
+替換完這段程式碼後，回到 Excel。
+
+另外提醒一個小細節：您截圖中 G11 儲存格（預估年化報酬率）目前是空白的。這個欄位是您個人對該資產的預期（例如填入 5% 或 0.05），這部分需要您手動填入，這樣總計的「投資組合加權報酬」才會精準喔！
+
+填好報酬率後，再次點擊「一鍵更新最新股價」按鈕。
+
+這次系統就會聰明地發現 1268.TW 找不到，自動改用 1268.TWO 去搜尋，漢來美食的股價、市值和圓餅圖就會瞬間完美出現了！趕快試試看吧！
+
+2_動態退休推估
+
+
+
+這個工作表 怎麼失去了 原本下面的試算表 這樣我才知道 每一年提領後 剩下多少以及絕對金額阿 我給你看原本的範例
+
+啊！非常抱歉，這真的是我的疏忽。之前的程式碼只幫您建置了「參數輸入」和「結果摘要」，漏掉了退休規劃中最核心的「每年現金流試算表 (Section 3)」。
+
+沒有這個表格，確實無法看出「提領遞增」、「投資孳息」以及「資金是否會提早耗盡」的動態變化。而且您提供的圖片中，公式計算非常精確（例如：孳息是扣掉當年提領後才計算），這非常專業！
+
+我為您寫了一段專門用來「一鍵生成 / 更新下面那張動態試算表」的程式碼。它會自動抓取您上半部的參數，並向下展開直到預估壽命。
+
+💡 解決方案：補上「試算表生成」引擎
+請打開 VBA 編輯器（Alt + F11），在原本的模組最下方，貼上這段新的程式碼：
+
+VBA
+' =======================================================
+' 自動生成：從退休當下至預估壽命提領表 (動態展開)
+' =======================================================
+Sub GenerateRetirementTable()
+    Dim ws As Worksheet
+    Set ws = ThisWorkbook.Sheets("2_動態退休推估")
+    
+    Dim currentAge As Integer, retireAge As Integer, lifeSpan As Integer
+    Dim r As Integer, i As Integer
+    Dim lastRow As Integer
+    
+    Application.ScreenUpdating = False
+    
+    ' 1. 清除第 12 列以下的舊資料 (避免重複生成)
+    ws.Rows("12:1000").Clear
+    
+    ' 2. 抓取關鍵參數 (依據您截圖的儲存格位置)
+    On Error Resume Next
+    currentAge = ws.Range("B2").Value     ' 目前年齡
+    lifeSpan = ws.Range("B10").Value      ' 預估壽命
+    retireAge = ws.Range("E3").Value      ' 預估退休年齡
+    On Error GoTo 0
+    
+    If retireAge = 0 Or lifeSpan = 0 Or retireAge > lifeSpan Then
+        MsgBox "請確認上方參數 (退休年齡、預估壽命) 已經計算出來且合理！", vbExclamation
+        Exit Sub
+    End If
+    
+    ' 3. 建立表格標題 (第 12, 13 列)
+    ws.Range("A12:G12").Merge
+    ws.Range("A12").Value = "三、從退休當下至預估壽命提領表 (模擬每年通膨與投資增長)"
+    With ws.Range("A12")
+        .Interior.Color = RGB(41, 128, 185) ' 專業藍色
+        .Font.Color = RGB(255, 255, 255)
+        .Font.Bold = True
+        .HorizontalAlignment = xlCenter
+        .Borders.LineStyle = xlContinuous
+    End With
+    
+    Dim headers As Variant
+    headers = Array("年齡", "該年年初資金", "當年提領金額 (隨通膨遞增)", "提領金【等值今日購買力】", "當年投資孳息", "年底剩餘資金", "資金狀態")
+    ws.Range("A13:G13").Value = headers
+    With ws.Range("A13:G13")
+        .Interior.Color = RGB(224, 224, 224)
+        .Font.Bold = True
+        .HorizontalAlignment = xlCenter
+        .Borders.LineStyle = xlContinuous
+    End With
+    
+    ' 4. 開始動態生成每年的資料 (從第 14 列開始寫入)
+    r = 14
+    For i = retireAge To lifeSpan
+        ws.Cells(r, 1).Value = i ' 年齡
+        
+        If i = retireAge Then
+            ' 第一年：年初資金 = 目標資產終值 (B3)
+            ws.Cells(r, 2).Formula = "=$B$3"
+            ' 第一年：提領金額 = 退休第一年可提領金額 (E5)
+            ws.Cells(r, 3).Formula = "=$E$5"
+        Else
+            ' 第二年起：年初資金 = 去年年底剩餘
+            ws.Cells(r, 2).Formula = "=F" & (r - 1)
+            ' 第二年起：提領金額 = 去年提領 * (1 + 通膨 B7)
+            ws.Cells(r, 3).Formula = "=C" & (r - 1) & "*(1+$B$7)"
+        End If
+        
+        ' 提領金【等值今日購買力】 = 當年提領 / (1+通膨)^(目前試算年齡 - 現在真實年齡)
+        ws.Cells(r, 4).Formula = "=C" & r & "/((1+$B$7)^(A" & r & "-$B$2))"
+        
+        ' 當年投資孳息 = (年初資金 - 當年提領) * 退休後保守報酬率(B9)
+        ws.Cells(r, 5).Formula = "=MAX(0, (B" & r & "-C" & r & "))*$B$9"
+        
+        ' 年底剩餘資金 = 年初資金 - 提領 + 孳息
+        ws.Cells(r, 6).Formula = "=B" & r & "-C" & r & "+E" & r
+        
+        ' 資金狀態
+        ws.Cells(r, 7).Formula = "=IF(F" & r & ">0, ""安全"", ""資金耗盡"")"
+        
+        r = r + 1
+    Next i
+    
+    ' 5. 表格美化與排版
+    lastRow = r - 1
+    
+    ' 設定金錢格式
+    ws.Range("B14:F" & lastRow).NumberFormat = "$#,##0"
+    
+    ' 畫上框線
+    ws.Range("A13:G" & lastRow).Borders.LineStyle = xlContinuous
+    ws.Range("A14:A" & lastRow).HorizontalAlignment = xlCenter
+    ws.Range("G14:G" & lastRow).HorizontalAlignment = xlCenter
+    
+    ' 設定欄寬以防顯示成 ###
+    ws.Columns("A").ColumnWidth = 8
+    ws.Columns("B").ColumnWidth = 16
+    ws.Columns("C:D").ColumnWidth = 26
+    ws.Columns("E:F").ColumnWidth = 16
+    ws.Columns("G").ColumnWidth = 12
+    
+    ' 6. 設定條件式格式 (安全=綠字, 耗盡=紅字警告)
+    Dim condRange As Range
+    Set condRange = ws.Range("G14:G" & lastRow)
+    condRange.FormatConditions.Delete
+    
+    ' 綠字：安全
+    With condRange.FormatConditions.Add(Type:=xlCellValue, Operator:=xlEqual, Formula1:="=""安全""")
+        .Font.Color = RGB(39, 174, 96)
+        .Font.Bold = True
+    End With
+    
+    ' 紅字底：資金耗盡
+    With condRange.FormatConditions.Add(Type:=xlCellValue, Operator:=xlEqual, Formula1:="=""資金耗盡""")
+        .Font.Color = RGB(255, 0, 0)
+        .Font.Bold = True
+        .Interior.Color = RGB(253, 235, 236)
+    End With
+    
+    Application.ScreenUpdating = True
+End Sub
+🛠️ 使用方式：
+貼上程式碼後，您只要在 Excel 中按下 Alt + F8。
+
+選擇 GenerateRetirementTable 並按下執行。
+
+它就會瞬間在下面生出和您圖片中一模一樣的「逐年提領、孳息、剩餘資金與狀態」試算表！
+
+💡 溫馨小建議：
+您可以像第一頁更新股價那樣，在第二頁（動態退休推估）的右邊也畫一個按鈕，命名為「產生/更新提領試算表」，並指定巨集為 GenerateRetirementTable。這樣以後只要您改了上方的歲數、報酬率或通膨率，按一下按鈕，下面的表格就會重新計算並展開到正確的壽命年紀！
+
+    ws.Rows("12:1000").Clear
+
+     偵錯
+
+出現這個錯誤（通常是跳出 「執行階段錯誤 1004：無法變更合併儲存格的一部分」 或類似的錯誤提示），在 Excel VBA 中非常常見！
+
+這通常是因為以下 兩個原因 之一造成的：
+
+合併儲存格跨列衝突：可能在第 11 列與第 12 列之間，或者第 12 列以下的範圍裡，有「合併的儲存格」。VBA 在執行 .Clear 整列時，如果不小心切到合併儲存格的一半，就會直接罷工報錯。
+
+範圍太大或有其他物件干擾：有時候直接呼叫整列 Rows("12:1000") 去清除，會碰到旁邊不相干的格式或按鈕，導致執行失敗。
+
+💡 解決方案：換成「精準且防呆」的清除寫法
+我們不要直接刪除「整列」，而是改成「先解除合併，再指定欄位範圍清除」。
+
+請回到您的 VBA 編輯器，找到這行報錯的程式碼：
+ws.Rows("12:1000").Clear
+
+將上面那一行，直接替換成下面這三行：
+
+VBA
+    ' 1. 安全地清除第 12 列以下的舊資料 (防呆版)
+    On Error Resume Next              ' 遇到格式衝突暫時忽略
+    ws.Range("A12:Z1000").UnMerge     ' 第一步：先強制解除此範圍的所有合併儲存格
+    ws.Range("A12:Z1000").Clear       ' 第二步：精準清除 A 到 Z 欄的內容與格式
+    On Error GoTo 0                   ' 恢復正常錯誤偵測
+🛠️ 為什麼這樣改就好了？
+UnMerge：就像拆除違建一樣，先把所有可能卡住的合併儲存格打散，這樣後續清除就不會報錯。
+
+Range("A12:Z1000")：限定只清除 A 到 Z 欄的資料。這樣寫比直接刪除整列（包含到 XFD 欄）還要安全很多，也不容易卡到其他隱藏的物件。
+
+On Error Resume Next：這是一個安全網，如果範圍內本來就沒有東西可以解除合併，程式也不會報錯中斷，而是會順利執行下一行。
+
+替換完成後，再按一次執行（Alt + F8 > GenerateRetirementTable），應該就能完美順暢地往下生成試算表了！如果還有跳出其他錯誤，隨時把錯誤代碼貼給我看看！
+
+明明就有值 為什麼ˊ還跳這個錯誤提醒
+
+
+
+   If retireAge = 0 Or lifeSpan = 0 Or retireAge > lifeSpan Then
+
+        MsgBox "請確認上方參數 (退休年齡、預估壽命) 已經計算出來且合理！", vbExclamation
+
+        Exit Sub
+
+    End If
+
+這真的是非常細心的發現！抓蟲（Debug）抓得好！
+
+我仔細比對了您的截圖，發現原因出在「儲存格的對應位置」錯位了！
+
+🔍 為什麼會跳出這個錯誤？
+在上一版程式碼中，有一行抓取預估壽命的代碼寫這樣：
+lifeSpan = ws.Range("B10").Value
+
+但看看您的截圖：
+
+預估壽命 其實是在 B8 儲存格（值為 85.0）。
+
+B10 儲存格其實是「投資組合加權年化報酬率」（值為 7.0%，也就是 0.07）。
+
+因為 lifeSpan 在程式裡被宣告為整數（Integer），當它去抓 B10 的 0.07 時，會自動捨去變成 0。
+這導致程式判定 lifeSpan = 0，所以立刻觸發了防呆機制的警告視窗！
+
+💡 解決方案（包含校正其他計算公式）
+不僅是預估壽命的位置偏了，我順便幫您檢查了後續的「通膨率」與「投資報酬率」的儲存格對應，發現也需要一起校正（通膨應為 B5、報酬率應為 B7），這樣下面生出來的試算表金額才會 100% 精準。
+
+請將原本的 GenerateRetirementTable 程式碼，完全替換成下面這段精準校正版：
+
+VBA
+' =======================================================
+' 自動生成：從退休當下至預估壽命提領表 (精準儲存格校正版)
+' =======================================================
+Sub GenerateRetirementTable()
+    Dim ws As Worksheet
+    Set ws = ThisWorkbook.Sheets("2_動態退休推估")
+    
+    Dim currentAge As Integer, retireAge As Integer, lifeSpan As Integer
+    Dim r As Integer, i As Integer
+    Dim lastRow As Integer
+    
+    Application.ScreenUpdating = False
+    
+    ' 1. 安全地清除第 12 列以下的舊資料
+    On Error Resume Next
+    ws.Range("A12:Z1000").UnMerge
+    ws.Range("A12:Z1000").Clear
+    On Error GoTo 0
+    
+    ' 2. 抓取關鍵參數 (★已校正為截圖中的正確儲存格位置)
+    On Error Resume Next
+    currentAge = ws.Range("B2").Value     ' 目前年齡 (B2)
+    lifeSpan = ws.Range("B8").Value       ' 預估壽命 (B8)
+    retireAge = ws.Range("E3").Value      ' 預估退休年齡 (E3)
+    On Error GoTo 0
+    
+    If retireAge = 0 Or lifeSpan = 0 Or retireAge > lifeSpan Then
+        MsgBox "請確認上方參數 (退休年齡、預估壽命) 已經計算出來且合理！", vbExclamation
+        Application.ScreenUpdating = True
+        Exit Sub
+    End If
+    
+    ' 3. 建立表格標題
+    ws.Range("A12:G12").Merge
+    ws.Range("A12").Value = "三、從退休當下至預估壽命提領表 (模擬每年通膨與投資增長)"
+    With ws.Range("A12")
+        .Interior.Color = RGB(41, 128, 185)
+        .Font.Color = RGB(255, 255, 255)
+        .Font.Bold = True
+        .HorizontalAlignment = xlCenter
+        .Borders.LineStyle = xlContinuous
+    End With
+    
+    Dim headers As Variant
+    headers = Array("年齡", "該年年初資金", "當年提領金額 (隨通膨遞增)", "提領金【等值今日購買力】", "當年投資孳息", "年底剩餘資金", "資金狀態")
+    ws.Range("A13:G13").Value = headers
+    With ws.Range("A13:G13")
+        .Interior.Color = RGB(224, 224, 224)
+        .Font.Bold = True
+        .HorizontalAlignment = xlCenter
+        .Borders.LineStyle = xlContinuous
+    End With
+    
+    ' 4. 開始動態生成每年的資料 (從第 14 列開始寫入)
+    r = 14
+    For i = retireAge To lifeSpan
+        ws.Cells(r, 1).Value = i ' 年齡
+        
+        If i = retireAge Then
+            ' 第一年：年初資金 = 目標資產終值 (B3)
+            ws.Cells(r, 2).Formula = "=$B$3"
+            ' 第一年：提領金額 = 退休第一年可提領金額 (E5)
+            ws.Cells(r, 3).Formula = "=$E$5"
+        Else
+            ' 第二年起：年初資金 = 去年年底剩餘
+            ws.Cells(r, 2).Formula = "=F" & (r - 1)
+            ' 第二年起：提領金額 = 去年提領 * (1 + 通膨 B5)
+            ws.Cells(r, 3).Formula = "=C" & (r - 1) & "*(1+$B$5)"
+        End If
+        
+        ' 提領金【等值今日購買力】 = 當年提領 / (1+通膨B5)^(目前試算年齡 - 現在真實年齡B2)
+        ws.Cells(r, 4).Formula = "=C" & r & "/((1+$B$5)^(A" & r & "-$B$2))"
+        
+        ' 當年投資孳息 = (年初資金 - 當年提領) * 退休後保守報酬率(B7)
+        ws.Cells(r, 5).Formula = "=MAX(0, (B" & r & "-C" & r & "))*$B$7"
+        
+        ' 年底剩餘資金 = 年初資金 - 提領 + 孳息
+        ws.Cells(r, 6).Formula = "=B" & r & "-C" & r & "+E" & r
+        
+        ' 資金狀態
+        ws.Cells(r, 7).Formula = "=IF(F" & r & ">0, ""安全"", ""資金耗盡"")"
+        
+        r = r + 1
+    Next i
+    
+    ' 5. 表格美化與排版
+    lastRow = r - 1
+    ws.Range("B14:F" & lastRow).NumberFormat = "$#,##0"
+    ws.Range("A13:G" & lastRow).Borders.LineStyle = xlContinuous
+    ws.Range("A14:A" & lastRow).HorizontalAlignment = xlCenter
+    ws.Range("G14:G" & lastRow).HorizontalAlignment = xlCenter
+    
+    ws.Columns("A").ColumnWidth = 8
+    ws.Columns("B").ColumnWidth = 16
+    ws.Columns("C:D").ColumnWidth = 26
+    ws.Columns("E:F").ColumnWidth = 16
+    ws.Columns("G").ColumnWidth = 12
+    
+    ' 6. 設定條件式格式 (安全=綠字, 耗盡=紅字警告)
+    Dim condRange As Range
+    Set condRange = ws.Range("G14:G" & lastRow)
+    condRange.FormatConditions.Delete
+    
+    With condRange.FormatConditions.Add(Type:=xlCellValue, Operator:=xlEqual, Formula1:="=""安全""")
+        .Font.Color = RGB(39, 174, 96)
+        .Font.Bold = True
+    End With
+    
+    With condRange.FormatConditions.Add(Type:=xlCellValue, Operator:=xlEqual, Formula1:="=""資金耗盡""")
+        .Font.Color = RGB(255, 0, 0)
+        .Font.Bold = True
+        .Interior.Color = RGB(253, 235, 236)
+    End With
+    
+    Application.ScreenUpdating = True
+End Sub
+換上這段新程式碼後，再點擊一次執行，就不會再跳出錯誤，而且下面生成的試算表公式（通膨、孳息）都會精準對應您目前的參數設定了！
+
+10:17 hay 但 還在等爆擊的階段 就勇敢離職  應該是有什麼其他的安心部位足以支撐
+
+10:17 hay 如果剩800 應該沒這底氣吧
+
+10:18 偉誌 就是預計吧，那時有達到目標就離職，沒達到目標就繼續，比較有可能
+
+10:20 hay 這樣規模不就跟你差不多而已  奇怪 薪水是你的3~4倍  怎麼規模會差不多  細節在哪?
+
+10:21 偉誌 BTC高波動，有時一年上漲100%，有時一年下跌50%
+
+10:22 偉誌 圖片
+
+10:23 偉誌 中獎個一年就結束了
+
+10:24 偉誌 可能我上次出國玩七八年前🤔
+
+10:25 偉誌 而且我有中華電信持股信託
+
+10:26 hay 這什麼貓毛
+
+10:26 hay 10年前股價130 十年後股價130
+
+10:26 hay 我們是不是實質上被圈錢被通膨吃掉而貶損
+
+10:27 偉誌 圖片
+
+10:27 偉誌 也170萬了
+
+10:28 hay 圖片
+
+10:28 hay 提存少  再加上 中間有停扣 育嬰留停
+
+10:29 hay 就差很多耶
+
+10:29 偉誌 也才差30萬
+
+10:29 偉誌 張閔翔繳的綜所稅就兩倍了
+
+10:30 hay 嗯嗯 這真的滿虧的
+
+10:30 hay 中華的薪水剛好在富人線以下
+
+10:30 hay 他一個人就要繳60萬的稅喔
+
+10:31 偉誌 他說假設沒有撫養的話
+
+10:32 hay 在「單身、無扶養、無其他特殊扣除額」的標準條件下，您去年的年總收入（含薪資、年終、獎金、股利、利息等綜合所得）大約在 382.5 萬元 左右。
+
+10:32 hay 由於您的所得淨額（338 萬）已經高於 266 萬元，適用稅率高達 30%，這意味著您每多賺 100 元，就有 30 元要繳給國庫
+
+10:32 偉誌 長期持有與儲蓄率才是真的關鍵
+
+10:33 hay 他多賺100元就要給政府30元
+
+10:33 偉誌 我們的政府很有錢
+
+10:45 hay 你昨天說薪水高低才是關鍵
+
+10:45 hay j個
+
+10:45 偉誌 貼圖
+
+10:46 偉誌 可能有排名吧
+
+10:46 hay 關鍵1 2 3
+
+10:46 偉誌 1.薪水 2儲蓄率
+
+10:50 偉誌 1.薪水 2儲蓄率 3 資產配置
+
+10:51 偉誌 1.薪水 2儲蓄率 3 資產配置…..100 擇時進出
+
+10:51 hay 100 擇時進出 :  "你怎麼知道現在不是三個月後的季線"
+
+10:53 偉誌 都不知道，所以資產配置，配置讓資產能長期暴險
+
+10:55 偉誌 持續參與金融市場，不需要不斷操作，就能得到報酬
+
+10:59 偉誌 圖片
+
+11:00 偉誌 依你圖上的「台灣」年度報酬率：
+
+
+
+* 2023：+33.66%
+
+* 2024：+29.20%
+
+* 2025：圖上台灣 +38.80%
+
+* 2026：圖上台灣 +56.28%
+
+
+
+假設 2023 年初投入 500 萬，一路持有並複利：
+
+
+
+計算：
+
+
+
+2023年底：
+
+500萬 \times 1.3366 = 668.3萬
+
+
+
+2024年底：
+
+668.3萬 \times 1.292 = 863.5萬
+
+
+
+2025年底：
+
+863.5萬 \times 1.388 = 1198.6萬
+
+
+
+2026：
+
+1198.6萬 \times 1.5628 = 1873.2萬
+
+
+
+結果：
+
+
+
+時間 資產
+
+2023年初 500萬
+
+2023年底 668萬
+
+2024年底 864萬
+
+2025年底 1,199萬
+
+2026後 約 1,873萬
+
+
+
+總報酬：
+
+
+
+\frac{1873-500}{500}=274.6\%
+
+
+
+也就是約 3.75倍。
+
+
+
+這張圖其實很能說明集中台股的威力與風險：
+
+2023～2026 台灣剛好吃到 AI、台積電、半導體供應鏈大多頭週期，4年不到 500萬→接近1900萬；但反過來像 2022 年台灣約 -20% 多，集中單一市場也會完整承受產業循環。你目前 006208 部位就是高度吃這類台灣大型權值股行情。
+
+11:00 偉誌 2023的500萬，現在是1873萬
+
+11:00 hay 明年2.20退休?
+
+11:02 偉誌 2023我們有500萬，只投資台股現在有1873只是市場的平均值
+
+11:05 偉誌 我無法
+
+11:06 hay 圖片
+
+11:06 hay ㄟㄟ你說 要存到5000萬  你現在有2000
+
+11:07 hay 這樣84歲會領光耶
+
+11:07 偉誌 提領率3.5應該穩
+
+11:07 hay 剩200
+
+11:08 偉誌 穩了
+
+11:08 hay 84歲剩下200萬耶
+
+11:08 偉誌 這個excel我有嗎
+
+11:09 偉誌 預估年化報酬率4%是什麼標的，這麼慘
+
+11:09 偉誌 VT長期也有個7%
+
+11:13 hay 幾秒鐘前剛請GEMINI生成
+
+11:14 hay 對ㄟ
+
+11:14 hay 從4改7  85歲的時候就還有剩下兩千萬
+
+11:14 偉誌 穩了
+
+11:15 hay 但這樣也還要51歲阿
+
+11:15 hay 怎麼會43歲?
+
+11:15 hay 圖片
+
+11:16 hay 圖片
+
+11:16 hay 拉錯張
+
+11:16 偉誌 5000降成4000就不多了
+
+11:17 hay 47歲
+
+11:17 hay 而且這個還是在 退休前要 每年投入60萬
+
+11:18 偉誌 差不多啊，我大概也每念投50
+
+11:18 偉誌 圖片
+
+11:18 偉誌 現在是2200
+
+11:19 hay 屌喔  還有更新時間
+
+11:20 偉誌 我還有自動記錄每天的市值
+
+11:20 hay 買進均價 你要怎麼更新阿  每次買入都再算一次喔  後面的成本有需要計算嗎
+
+11:20 hay 恩恩 這樣好像挺踏實的
+
+11:21 偉誌 買入就要把買多少填上去
+
+11:21 偉誌 圖片
+
+11:22 hay 庫存股數怎麼追蹤啊? 不會還要去串API吧
+
+11:22 偉誌 要有不同分頁紀錄
+
+11:22 hay 喔喔 人工喔
+
+11:22 偉誌 額外分頁人工紀錄買了什麼
+
+11:23 偉誌 不難記啊，這個上次紀都一年前了
+
+11:23 hay 買進手續費 這些紀錄的理由是什麼
+
+11:23 hay 超級不FOMO
+
+11:23 偉誌 這些就公式的
+
+11:23 hay 我的意思是 這個資料的用途
+
+11:23 hay 還有買進成本
+
+11:24 偉誌 用來預估賣出會賺多少
+
+11:24 hay 長期持有 就沒有要賣價差啊
+
+11:24 偉誌 我的預估報酬率是去扣這些成本的
+
+11:24 hay 只是提領
+
+11:24 偉誌 還是會賣啊
+
+11:24 hay 預估年化不就已經含有這些成本了嗎
+
+11:25 hay 還是太粗糙
+
+11:25 偉誌 需要用就賣了
+
+11:26 偉誌 嗯嗯，單筆那些買入成本都不用記也無仿
+
+11:26 偉誌 這些不是退休提領的應用
+
+11:31 hay 目前股價 你是讓他去爬 還是人工填阿
+
+11:32 偉誌 Api
+
+11:32 hay 手機板點開EXCEL 能啟動巨集串API???
+
+11:33 偉誌 圖片
+
+11:33 偉誌 不用
+
+11:33 偉誌 這十年前的api了
+
+11:33 hay 這麼簡單喔
+
+11:34 偉誌 更新時間 本益比 那些也都有這api
+
+11:35 偉誌 圖片
+
+11:35 偉誌 也可以畫折線圖
+
+11:35 偉誌 https://bluelifenote.blogspot.com/2021/08/google-sheet-api.html
+
+11:36 偉誌 這裡有教學
+
+11:36 hay VIBE就好 不看教學
+
+11:36 偉誌 年代不一樣了🤔
+
+02:03 hay 你會好奇公司那些60+的老人 資產到底是遠大於你目前 還是小於嗎  
+
+02:04 hay 是他們對退休的規畫更保守需要存到1E?
+
+02:05 偉誌 遠大於啊
+
+02:05 hay 奇怪那怎麼還不退
+
+02:05 偉誌 以前的年代，薪水也差不多，房價又便宜
+
+02:05 偉誌 我問我科長啊，他說能做就儘量做，小孩長大都還要用到錢
+
+02:05 hay 會不會只存年化1.5%的標的
+
+02:07 偉誌 老人都買房吧
+
+02:08 hay 那這樣他們真的是相對低調
+
+02:08 hay 不像年輕人 三不五時在那邊說我幾歲就要退休了
+
+02:11 偉誌 年輕人被老人虐到怕
+
+02:18 偉誌 我們誘惑也很多，其實也沒苦過
+
+02:21 hay 如果現在多頭到45歲  報酬率 都遠超預估的7%   但其實是一個大循環
+
+退休後十年 開始往下扣抵均值回歸
+
+
+
+也就是說 原本穩穩計算的45歲 是以7%成長  不是以過程中50%  100%
+
+02:21 hay 就是45歲當下的4千萬  跟原本規劃的4千萬  是不同意義嗎
+
+02:22 hay 退休後十年 開始往下扣抵均值回歸:  這段時間內掉了一堆部位
+
+02:25 偉誌 覺得相同意義
+
+02:26 hay 反正就是目標數字到了就閃人
+
+02:27 偉誌 資產配置也要調成退休模式
+
+02:27 偉誌 總不可能還60%比特幣
+
+02:28 偉誌 例如股票部位我想調成七成的VT
+
+02:29 偉誌 退休時
+
+02:30 偉誌 再怎樣也會把持股信託的中華電通通賣掉換VT或現金或債券
+
+02:32 偉誌 但在中華還是先試試公司底線後再離職
+
+02:33 偉誌 有可能變成去上班很快樂
+
+02:33 偉誌 那也其實也等同於退休
+
+02:34 偉誌 中華的少數優勢
+
+02:36 偉誌 另外張閔翔離職跟我們離職很不一樣，如過真的幾年內爆跌，要再找工作，中華電的經歷和高通的經歷也差很多
+
+02:36 偉誌 有可能隨便找，薪資也高於中華電
+
+02:39 hay 圖片
+
+02:39 hay ai有沒有亂算阿  他說你直接裸退  到85歲 資產會變成3800萬
+
+02:40 hay 只是就是要忍一下 一年花84算就能過
+
+02:40 hay 這樣的規劃客觀嗎
+
+02:40 偉誌 所以開發工作的角色變成檢驗ai的程式
+
+02:41 hay 稍微看一下好像合理
+
+02:41 hay 不知道有沒有哪裡有誤區
+
+02:41 hay 84萬  每月花7萬
+
+02:41 偉誌 通常風險就是你提到的報酬順序風險
+
+02:42 hay 銀行不願意告訴你的真相
+
+02:42 偉誌 這個
+
+02:42 hay 所以他的數字本身沒有錯
+
+02:43 hay 年化6% 估大盤 應該不過份吧
+
+
+
+把這些對話紀錄 以及我們今天討論的退休規劃 總結一下 所有的風險及可行性評估
+
+你們的討論非常精彩，而且觸及了許多真正懂財務規劃的人才會思考的「深水區」。從試算表的建置到對話中的思辨，可以看出你們對 FIRE（財務獨立、提早退休）有很務實且具體的藍圖。
+
+綜合你們的對話紀錄，以及剛剛建置的動態退休推估模型，我將目前的規劃可行性與潛在風險總結如下：
+
+一、 退休規劃可行性評估（高度可行）
+目前的財務軌跡非常穩健，處於一個隨時可以切換跑道的優勢位置：
+
+資產增長速度遠超多數人： 目前年齡 37 歲，已累積約 1,860 萬至 2,000 萬的總資產。在每年持續投入 60 萬、預估年化報酬率 7% 的情況下，大約 8.6 年後（約 45.6 歲）就能達到 4,000 萬的目標終值。
+
+「裸退」的底氣： 對話中提到如果直接離職，靠現有資產讓它自己滾動，以 6% 到 7% 的年化報酬率去推算，到 85 歲都還能剩下超過兩千萬。這在數學上完全成立，代表即使未來完全停止投入資金，現有資本的複利效應已經足以支撐 4% 左右的提領率（首年約 134 萬至 160 萬的購買力）。
+
+儲蓄率與稅務優勢的認知： 你們清楚點出「高薪不是唯一，儲蓄率才是關鍵」。單身且無扶養親屬的高薪族群面臨 30% 的邊際稅率，賺得越多被抽得越兇；相比之下，靠資產配置與複利滾動出來的資本利得，在稅務上反而更具優勢。
+
+二、 核心潛在風險 (必須防禦的盲區)
+對話中你們精準點出了兩個最大的風險，這些是 Excel 表格預設的「完美平均值」無法呈現的現實：
+
+最大威脅：報酬順序風險 (Sequence of Return Risk)
+對話中提到的「退休後十年 開始往下扣抵均值回歸」是非常深刻的見解。試算表上的 7% 是一條平滑的直線，但現實市場是波動的。如果在 45 歲剛好遇到大牛市頂峰（例如台股連漲數年），資產膨脹到 4,000 萬就宣布退休；結果退休頭兩年遇到股災跌掉 30%，加上你又必須固定提領生活費，資產池會受到「雙重打擊」，提早耗盡的機率將大幅攀升。
+
+資產過度集中的風險
+近幾年的資產爆發，很大程度來自於重倉台灣大盤（如 006208、0050）、半導體週期以及高波動的加密貨幣。這種集中單一市場的策略在大多頭時代（2023-2026）能創造 3 倍以上的驚人報酬，但如果在退休階段依然維持這種配置，將無法承受下一個產業週期的衰退。
+
+通膨對實質購買力的侵蝕
+規劃中設定了 2% 的通膨率。45 歲時的 4,000 萬，其購買力已經不如現在的 4,000 萬。這也是為什麼試算表中的「等值今日購買力」會打折。如果未來通膨長期維持在 3% 以上，4% 的提領率可能會讓晚年生活變得拮据。
+
+三、 戰略總結與後續行動
+啟動「退休滑行道 (Glide Path)」： 誠如對話中提到的「總不可能還 60% 比特幣」、「再怎樣也會把持股信託通通賣掉換 VT」。在接近 4000 萬目標的前三年，就應該開始逐步將高波動、高集中的部位（台股、個股、幣）獲利了結，轉移到像 VT 全世界股票這樣的全市場 ETF 或防禦性債券，將波動率降下來。
+
+「安靜退休 (Coast FIRE)」的完美實踐： 「在公司先試試底線再離職，有可能變成去上班很快樂」這絕對是最高明的策略。當你的資產已經足以支撐生活，上班就變成了一種「選擇」而非「必須」。不帶經濟壓力的工作狀態，不僅能繼續維持現金流、享受勞健保資源，還能避開剛退休時遇到股災的「報酬順序風險」。
+
+既然 45 歲左右就能達標，針對最致命的「報酬順序風險」，你們有打算在距離達標前幾年（例如 42 歲時），設定什麼具體的「停利與轉倉」規則，來避免一退休就撞上熊市崩盤嗎？
+
+PAMS【大樓名稱】 地址
+
+NKN7Y8[堅山建設青海段大樓] "高雄市鼓山區青海段397地號B2電信室(青海路與馬卡道路口)
+
+水電連絡人:0975311223 郭先生。"
+
+NKC3ADE[尊邑RICH ONE] 高雄市三民區正忠路35號
+
+NKC25B[興富發森美樹] "高雄市三民區美都路熱河三街口(新都段310地號)
+
+水電:0932697196 廖先生"
+
+NKN1PI[春秋閣新庄段190(未公開)] "高雄市左營區華夏路767號附近 B1F電信室 (新庄段六小段190地號)
+
+聯濠水電黃于愷0933-313-812    估2026Q2"
+
+NKC25C【太普明日匯B(二期)】NKC2436F "高雄市三民區德北街23號對面B1F(德北段19-1地號)
+
+水電:黃先生0919798591"
+
+NKN24N [友樂市]NKN2321E "高雄市楠梓區楠梓東街79號旁B2F(楠都段一小段603地號等5筆地號)
+
+水電TEL：0919-135086 莊添榮"
+
+NKN24L[未公開_龍廷建設] NKN2231B "高雄市大社區大德街33號後方1F(興工段552地號)
+
+水電TEL：0986-979971 許睿穎"
+
+NKN75N[美術1808大樓]NKN7427S "高雄市鼓山區美術東四路439號斜對面B3F(青海段75-1地號)
+
+水電:蔣先生0977669205 "
+
+NKC20B[興富發森悦]NKC2474D "高雄市三民區美都路23號(隔壁)  三民區新都段342等3筆地號
+
+水電:廖主任0932697196"
+
+NKN75A[美術1號院]NKN75A(BC棟B2)、NKN75B(A棟B3)、NKN75C[凱悅酒店B3] "高雄市鼓山區美術東二路明誠四路口(青海段214地號)
+
+水電黃啟琮0985790958、電信潘明枝0910215423"
+
+
+
+印象巴黎 美術東四路436號
+
+鼎宇橘園 美術東八街101號
+
+亞歷山大 裕國街123號
+
+
+
+以上地點幫我點在GOOGLE地圖上 我來安排路線 或者你有更好的建議
+
+已經為您查詢並定位了所有的地點！根據這些點位的地理分佈，它們橫跨了美術館特區、後驛/中都、正忠路（高科大附近）、左營高鐵周邊、楠梓及大社。
+
+為了方便您安排行程，我將這些點位依照「地理區域」進行分組，並為您規劃了由南往北、不走回頭路的流暢巡檢/拜訪路線建議。
+
+🗺️ 地理分組與建議順序
+第一階段：三民東區（起點/獨立點）
+[尊邑RICH ONE]：高雄市三民區正忠路35號。這個點位置較偏東側（靠近國道一號與高科大建工校區），建議作為當天行程的第一站，或單獨抽出來跑。
+
+第二階段：後驛與中都重劃區（美都路/德北街一帶）
+從正忠路往西走，進入這三個非常鄰近的點：
+
+[興富發森美樹]：高雄市三民區美都路熱河三街口。
+
+[興富發森悦]：高雄市三民區美都路23號。
+
+[太普明日匯B(二期)]：高雄市三民區德北街23號對面（就在鐵道園區旁，離美都路很近）。
+
+第三階段：美術館特區核心（點位最密集，可集中處理）
+穿過願景橋或中華路進入鼓山區美術館特區，這裡有高達 6 個點，建議串聯順序如下：
+
+[堅山建設青海段大樓]：青海路與馬卡道路口（翠華路旁）。
+
+鼎宇橘園：美術東八街101號。
+
+亞歷山大：裕國街123號。
+
+印象巴黎：美術東四路436號。
+
+[美術1808大樓]：美術東四路439號斜對面。
+
+[美術1號院 / 凱悅酒店]：美術東二路與明誠四路口。
+
+第四階段：北高與外圍（左營 → 楠梓 → 大社）
+從明誠四路順著翠華路或博愛路一路往北切：
+
+[春秋閣新庄段190]：高雄市左營區華夏路767號附近（靠近新左營高鐵站）。
+
+[友樂市]：高雄市楠梓區楠梓東街79號旁（楠梓火車站、楠梓舊街附近）。
+
+[未公開_龍廷建設]：高雄市大社區大德街33號後方（最後的北端外圍點）。
+
+🚀 最佳路線調配建議
+如果您打算在一天內或分段跑完，最有效率的走法是「由東向西，再由南往北」：
+
+正忠路（尊邑） → 中都/德北街（森美樹 → 森悅 → 太普明日匯） → 美術館區（青海馬卡道 → 橘園 → 亞歷山大 → 印象巴黎 → 美術1808 → 美術1號院） → 左營（華夏路） → 楠梓（友樂市） → 大社（大德街）。
+
+您可以點擊下方連結，直接在 Google 地圖上查看這些規劃好、最順路的導航路線：
+
+👉 點此開啟：三民區至美術館區前半段路線 (Google 地圖)
+
+👉 點此開啟：美術館特區內部串聯精細路線 (Google 地圖)
+
+👉 點此開啟：北高延伸至楠梓大社外圍路線 (Google 地圖)
+
+您可以依據當天手頭上水電聯絡人的預約時間，彈性微調這三個區塊的先後順序！
+
+台灣高雄市苓雅區
+我只要 泛美術館區 的即可
+
+沒問題！如果只聚焦在泛美術館區，這些點位全部集中在鼓山區（龍水里/龍子里），距離非常近。以下為您挑選出該區域的 6 個點位，並規劃了最順路、不走回頭路的南北串聯路線。
+
+📍 泛美術館區 6 大點位順序
+建議由南往北依序巡檢，路線最流暢：
+
+[堅山建設青海段大樓]：青海路與馬卡道路口（靠近馬卡道路）。
+
+鼎宇橘園：美術東八街101號。
+
+亞歷山大：裕國街123號。
+
+印象巴黎：美術東四路436號（鄰近東四路與美術東八街口）。
+
+[美術1808大樓]：美術東四路439號斜對面。
+
+[美術1號院 / 凱悅酒店]：美術東二路與明誠四路口。
+
+🗺️ 路線安排建議
+這 6 個點位總車程大約只需 15-20 分鐘，您可以點擊下方連結直接在 Google 地圖上看好路線、進行導航安排：
+
+👉 點此開啟：泛美術館區 6 點串聯最佳路線 (Google 地圖)
+
+💡 貼心提醒：
+這條路線基本上是順著「青海路 → 美術東八街 → 美術東四路 → 明誠四路」一路往北切。您可以視當天水電聯絡人的預約時間，直接點擊連結彈性調整喔！
+
+Google 地圖
+從堅山謙仰到美術1号院的路線
+
+在 Google 地圖在新視窗中開啟中開啟
+
+台灣高雄市苓雅區
+我覺得我們今天討論的專案很好 你幫我寫成HTML我要掛到GITHUB讓人試算
+
+以及一樣產出這個提領表 然後頁面做漂亮的一點 大小幅度適中
+
+Your HTML file is ready
+「HTML」圖示
+ FIRE_Retir...Calculator 
+ HTML 
+
+這是一份為您量身打造的 FIRE 動態退休提領推估儀表板 HTML 網頁檔！
+
+我將它設計為完全獨立的單一檔案（包含 HTML、CSS 與 JavaScript），而且具備以下特點：
+
+即時響應式運算 (Reactive UI)：不需要按「計算」按鈕，只要修改任何一個參數（包含年齡、金額、報酬率等），右側的摘要與下方的「逐年提領表」就會瞬間動態更新，體驗跟 Excel 幾乎一模一樣。
+
+現代化介面與 RWD 支援：版面經過重新設計，字體、間距與顏色幅度適中。在電腦上會呈現左右分欄的專業儀表板佈局；若使用手機開啟，則會自動變為上下排列的 RWD 響應式介面。
+
+精準移植公式：包含 NPER 的對數計算、隨通膨遞增的提領額、等值今日購買力的折現，以及「安全 / 資金耗盡」的動態標籤。
+
+🚀 如何將此網頁掛載到 GitHub Pages 讓其他人試算？
+只要簡單 3 個步驟，就能免費公開分享：
+
+建立新的 GitHub 儲存庫 (Repository)：
+
+登入您的 GitHub，點擊右上角的 + → New repository。
+
+輸入專案名稱（例如 fire-calculator），設為 Public (公開)，然後點擊 Create repository。
+
+上傳此 HTML 檔案：
+
+在剛建立好的儲存庫頁面中，點擊 uploading an existing file。
+
+將剛剛下載的 FIRE_Retirement_Calculator.html 拖曳進去。
+
+強烈建議將檔名重新命名為 index.html，這樣網址會比較乾淨。點擊 Commit changes 存檔。
+
+開啟 GitHub Pages 服務：
+
+點選儲存庫上方的 Settings 頁籤。
+
+在左側選單找到 Pages。
+
+在 Build and deployment 的 Source 選擇 Deploy from a branch。
+
+在 Branch 的下拉選單選擇 main，然後按 Save。
+
+等待大約 1~2 分鐘，頁面上方就會出現專屬的網址（通常是 https://您的帳號.github.io/fire-calculator/），您就可以把這個網址分享給朋友試算囉！
+
+
+
+
+Gemini 是 AI，有時可能會出錯。
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FIRE 動態退休提領推估儀表板</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #2980b9;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --background: #f4f7f6;
+            --surface: #ffffff;
+            --text-main: #333333;
+            --text-muted: #7f8c8d;
+            --border: #e0e6ed;
+            --input-bg: #fff9c4; /* 匹配原本 Excel 黃底可修改的感覺 */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        header {
+            grid-column: 1 / -1;
+            background-color: var(--primary);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        header p {
+            color: #bdc3c7;
+            font-size: 0.95rem;
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+        }
+
+        .card h2 {
+            color: var(--primary);
+            font-size: 1.25rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--secondary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #34495e;
+            font-size: 0.9rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper span {
+            position: absolute;
+            left: 10px;
+            color: var(--text-muted);
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 10px 10px 10px 30px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1rem;
+            background-color: var(--input-bg);
+            transition: all 0.3s ease;
+        }
+
+        .input-wrapper input:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 2px rgba(41, 128, 185, 0.2);
+        }
+
+        /* 針對沒有前綴圖標的輸入框 */
+        .input-group.no-icon .input-wrapper input {
+            padding-left: 10px;
+        }
+
+        /* 結果摘要區塊 */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .summary-box {
+            background-color: #e8f4f8;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid var(--secondary);
+        }
+
+        .summary-box.success {
+            background-color: #e8f8f5;
+            border-left-color: var(--success);
+        }
+
+        .summary-box .title {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .summary-box .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* 表格區塊 */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: right;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background-color: var(--secondary);
+            color: white;
+            font-weight: 600;
+            text-align: center;
+            position: sticky;
+            top: 0;
+        }
+
+        td:first-child, th:first-child {
+            text-align: center;
+        }
+
+        tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #fbfcfc;
+        }
+
+        .status-safe {
+            color: var(--success);
+            font-weight: bold;
+            background: #e8f8f5;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .status-danger {
+            color: var(--danger);
+            font-weight: bold;
+            background: #fdedec;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        footer {
+            grid-column: 1 / -1;
+            text-align: center;
+            margin-top: 20px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>FIRE 動態退休提領推估儀表板</h1>
+        <p>即時試算退休年齡、資產終值與每年提領現金流</p>
+    </header>
+
+    <!-- 左側：參數設定 -->
+    <div class="card">
+        <h2>參數設定 <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;">(自動連動計算)</span></h2>
+        
+        <div class="input-group no-icon">
+            <label>目前年齡</label>
+            <div class="input-wrapper">
+                <input type="number" id="currentAge" value="37" step="1">
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>目標資產終值 (想存到多少錢)</label>
+            <div class="input-wrapper">
+                <span>$</span>
+                <input type="number" id="targetAsset" value="40000000" step="100000">
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>目前投資組合總市值</label>
+            <div class="input-wrapper">
+                <span>$</span>
+                <input type="number" id="currentAsset" value="18667992" step="10000">
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>預計每年再投入金額 (不含股息)</label>
+            <div class="input-wrapper">
+                <span>$</span>
+                <input type="number" id="annualInvestment" value="500000" step="10000">
+            </div>
+        </div>
+
+        <div class="input-group no-icon">
+            <label>投資組合加權年化報酬率 (%)</label>
+            <div class="input-wrapper">
+                <input type="number" id="portfolioReturn" value="7" step="0.1">
+            </div>
+        </div>
+
+        <div class="input-group no-icon">
+            <label>預估通貨膨脹率 (%)</label>
+            <div class="input-wrapper">
+                <input type="number" id="inflationRate" value="2" step="0.1">
+            </div>
+        </div>
+
+        <div class="input-group no-icon">
+            <label>退休後提領率 (安全提領) (%)</label>
+            <div class="input-wrapper">
+                <input type="number" id="withdrawalRate" value="4" step="0.1">
+            </div>
+        </div>
+
+        <div class="input-group no-icon">
+            <label>退休後保守年化報酬率 (%)</label>
+            <div class="input-wrapper">
+                <input type="number" id="postRetirementReturn" value="6" step="0.1">
+            </div>
+        </div>
+
+        <div class="input-group no-icon">
+            <label>預估壽命</label>
+            <div class="input-wrapper">
+                <input type="number" id="lifeExpectancy" value="85" step="1">
+            </div>
+        </div>
+    </div>
+
+    <!-- 右側：結果與圖表 -->
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+        <!-- 結果摘要 -->
+        <div class="card">
+            <h2>退休推估結果</h2>
+            <div class="summary-grid">
+                <div class="summary-box">
+                    <div class="title">距離達標所需年數</div>
+                    <div class="value" id="resYears">0.0 年</div>
+                </div>
+                <div class="summary-box success">
+                    <div class="title">推估可退休年齡</div>
+                    <div class="value" id="resRetireAge">0 歲</div>
+                </div>
+                <div class="summary-box">
+                    <div class="title">目標終值【等值今日購買力】</div>
+                    <div class="value" id="resTargetToday">$0</div>
+                </div>
+                <div class="summary-box success">
+                    <div class="title">退休第一年可提領金額</div>
+                    <div class="value" id="resFirstWithdrawal">$0</div>
+                </div>
+                <div class="summary-box">
+                    <div class="title">首年提領【等值今日購買力】</div>
+                    <div class="value" id="resFirstWithdrawalToday">$0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 提領動態表 -->
+        <div class="card">
+            <h2>從退休當下至預估壽命提領表 <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;">(模擬每年通膨與投資增長)</span></h2>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>年齡</th>
+                            <th>該年年初資金</th>
+                            <th>當年提領金額<br><span style="font-size:0.75rem; font-weight:normal;">(隨通膨遞增)</span></th>
+                            <th>提領金<br><span style="font-size:0.75rem; font-weight:normal;">【等值今日購買力】</span></th>
+                            <th>當年投資孳息</th>
+                            <th>年底剩餘資金</th>
+                            <th>資金狀態</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- 動態生成 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Built for FIRE Financial Independence | Open Source Template</p>
+    </footer>
+</div>
+
+<script>
+    // 格式化貨幣的輔助函數
+    const formatCurrency = (value) => {
+        return new Intl.NumberFormat('zh-TW', { 
+            style: 'currency', 
+            currency: 'TWD', 
+            maximumFractionDigits: 0 
+        }).format(value);
+    };
+
+    // 核心計算與畫面更新函數
+    function calculate() {
+        // 取得所有參數
+        const currentAge = parseFloat(document.getElementById('currentAge').value) || 0;
+        const targetAsset = parseFloat(document.getElementById('targetAsset').value) || 0;
+        const currentAsset = parseFloat(document.getElementById('currentAsset').value) || 0;
+        const annualInvestment = parseFloat(document.getElementById('annualInvestment').value) || 0;
+        const portfolioReturn = (parseFloat(document.getElementById('portfolioReturn').value) || 0) / 100;
+        const inflationRate = (parseFloat(document.getElementById('inflationRate').value) || 0) / 100;
+        const withdrawalRate = (parseFloat(document.getElementById('withdrawalRate').value) || 0) / 100;
+        const postRetirementReturn = (parseFloat(document.getElementById('postRetirementReturn').value) || 0) / 100;
+        const lifeExpectancy = parseFloat(document.getElementById('lifeExpectancy').value) || 0;
+
+        // 計算距離達標所需年數 (利用 NPER 數學公式改寫)
+        // FV = PV*(1+r)^n + PMT*(((1+r)^n - 1)/r) => 解 n
+        let yearsToTarget = 0;
+        if (currentAsset >= targetAsset) {
+            yearsToTarget = 0;
+        } else {
+            if (portfolioReturn > 0) {
+                const numerator = targetAsset + (annualInvestment / portfolioReturn);
+                const denominator = currentAsset + (annualInvestment / portfolioReturn);
+                if (numerator / denominator > 0) {
+                    yearsToTarget = Math.log(numerator / denominator) / Math.log(1 + portfolioReturn);
+                    yearsToTarget = Math.ceil(yearsToTarget * 10) / 10; // 無條件進位到小數第一位，匹配 Excel ROUNDUP
+                } else {
+                    yearsToTarget = Infinity; // 無法達成
+                }
+            } else {
+                // 如果報酬率為 0 的純存錢計算
+                yearsToTarget = (targetAsset - currentAsset) / annualInvestment;
+                yearsToTarget = Math.ceil(yearsToTarget * 10) / 10;
+            }
+        }
+
+        // 推估可退休年齡
+        const retirementAge = currentAge + yearsToTarget;
+        
+        // 匯率/通膨折現計算
+        const targetInTodayMoney = targetAsset / Math.pow(1 + inflationRate, yearsToTarget);
+        const firstYearWithdrawal = targetAsset * withdrawalRate;
+        const firstYearWithdrawalToday = firstYearWithdrawal / Math.pow(1 + inflationRate, yearsToTarget);
+
+        // 更新摘要畫面
+        document.getElementById('resYears').innerText = isFinite(yearsToTarget) ? `${yearsToTarget.toFixed(1)} 年` : '無法達成';
+        document.getElementById('resRetireAge').innerText = isFinite(retirementAge) ? `${retirementAge.toFixed(1)} 歲` : '-';
+        document.getElementById('resTargetToday').innerText = isFinite(targetInTodayMoney) ? formatCurrency(targetInTodayMoney) : '-';
+        document.getElementById('resFirstWithdrawal').innerText = formatCurrency(firstYearWithdrawal);
+        document.getElementById('resFirstWithdrawalToday').innerText = isFinite(firstYearWithdrawalToday) ? formatCurrency(firstYearWithdrawalToday) : '-';
+
+        // 生成提領動態表
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = ''; // 清空舊資料
+
+        if (!isFinite(retirementAge) || retirementAge > lifeExpectancy) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: var(--text-muted);">參數設定導致無法在壽命內退休，請調整參數。</td></tr>';
+            return;
+        }
+
+        // 從退休當年開始推算
+        let startAge = Math.floor(retirementAge);
+        let balance = targetAsset;
+        let currentWithdrawal = firstYearWithdrawal;
+        
+        let htmlContent = '';
+
+        for (let age = startAge; age <= lifeExpectancy; age++) {
+            // 當年等值今日購買力
+            const withdrawalToday = currentWithdrawal / Math.pow(1 + inflationRate, (age - currentAge));
+            // 當年投資孳息 (扣除提領後才產生報酬)
+            const returnAmount = Math.max(0, balance - currentWithdrawal) * postRetirementReturn;
+            // 年底剩餘資金
+            const endBalance = balance - currentWithdrawal + returnAmount;
+            
+            // 狀態判定
+            const statusLabel = endBalance > 0 ? '<span class="status-safe">安全</span>' : '<span class="status-danger">資金耗盡</span>';
+
+            htmlContent += `
+                <tr>
+                    <td style="text-align: center;">${age}</td>
+                    <td>${formatCurrency(balance)}</td>
+                    <td>${formatCurrency(currentWithdrawal)}</td>
+                    <td>${formatCurrency(withdrawalToday)}</td>
+                    <td>${formatCurrency(returnAmount)}</td>
+                    <td>${formatCurrency(endBalance)}</td>
+                    <td style="text-align: center;">${statusLabel}</td>
+                </tr>
+            `;
+
+            // 為下一年準備數據
+            balance = endBalance;
+            currentWithdrawal = currentWithdrawal * (1 + inflationRate); // 隨通膨遞增提領
+
+            // 如果資金已耗盡，為避免出現極端負數，可選擇在此中斷或繼續。此處與 Excel 邏輯一致，跑滿壽命。
+        }
+
+        tbody.innerHTML = htmlContent;
+    }
+
+    // 綁定所有 input 標籤的事件監聽，實現打字即時運算
+    document.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', calculate);
+    });
+
+    // 初始化第一次計算
+    window.onload = calculate;
+</script>
+
+</body>
+</html>
+FIRE_Retirement_Calculator.html
+FIRE_Retirement_Calculator.html
+目前顯示的是「FIRE_Retirement_Calculator.html」。正在載入「FIRE_Retirement_Calculator.html」。
