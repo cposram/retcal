@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PRO FIRE 動態退休推估引擎</title>
-    <!-- 引入 FontAwesome 圖示庫 -->
+    <title>PRO FIRE 動態退休推估引擎 V6</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- 引入 Chart.js 圖表庫 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap');
@@ -64,9 +62,7 @@
         }
 
         @media (max-width: 1100px) {
-            .container {
-                grid-template-columns: 1fr;
-            }
+            .container { grid-template-columns: 1fr; }
         }
 
         header {
@@ -80,271 +76,110 @@
             gap: 10px;
         }
 
-        .header-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        header i.fa-rocket {
-            font-size: 1.8rem;
-            color: var(--accent-cyan);
-            text-shadow: var(--glow-cyan);
-        }
-
+        .header-title { display: flex; align-items: center; gap: 10px; }
+        header i.fa-rocket { font-size: 1.8rem; color: var(--accent-cyan); text-shadow: var(--glow-cyan); }
         header h1 {
-            font-size: 1.4rem;
-            font-weight: 800;
+            font-size: 1.4rem; font-weight: 800;
             background: linear-gradient(90deg, #06b6d4, #3b82f6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
-
         header p {
-            color: var(--text-muted);
-            font-size: 0.8rem;
-            background: rgba(39, 53, 73, 0.4);
-            padding: 4px 10px;
-            border-radius: 20px;
-            border: 1px solid var(--border);
+            color: var(--text-muted); font-size: 0.8rem;
+            background: rgba(39, 53, 73, 0.4); padding: 4px 10px;
+            border-radius: 20px; border: 1px solid var(--border);
         }
 
         .card {
-            background: var(--bg-card);
-            border-radius: 14px;
-            padding: 16px;
-            border: 1px solid var(--border);
+            background: var(--bg-card); border-radius: 14px;
+            padding: 16px; border: 1px solid var(--border);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-            margin-bottom: 16px;
-            width: 100%;
-            min-width: 0;
+            margin-bottom: 16px; width: 100%; min-width: 0;
         }
 
         .card h2 {
-            font-size: 1.05rem;
-            color: var(--text-main);
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border-bottom: 1px solid rgba(39, 53, 73, 0.5);
-            padding-bottom: 8px;
+            font-size: 1.05rem; color: var(--text-main); margin-bottom: 16px;
+            display: flex; align-items: center; gap: 8px;
+            border-bottom: 1px solid rgba(39, 53, 73, 0.5); padding-bottom: 8px;
         }
 
-        .input-grid-two-col {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
+        .input-grid-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        @media (max-width: 480px) { .input-grid-two-col { grid-template-columns: 1fr; } }
 
-        @media (max-width: 480px) {
-            .input-grid-two-col {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .input-group {
-            margin-bottom: 14px;
-        }
-
-        .input-group label {
-            display: block;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-bottom: 5px;
-            font-weight: 500;
-        }
-
+        .input-group { margin-bottom: 14px; }
+        .input-group label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px; font-weight: 500; }
         .input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-            background: var(--bg-input);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            transition: all 0.2s ease;
+            position: relative; display: flex; align-items: center;
+            background: var(--bg-input); border: 1px solid var(--border);
+            border-radius: 8px; transition: all 0.2s ease;
         }
-
-        .input-wrapper:focus-within {
-            border-color: var(--accent-cyan);
-            box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.15);
-        }
-
-        .input-icon {
-            padding-left: 10px;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            width: 32px;
-            text-align: center;
-        }
-
-        .input-wrapper input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: var(--text-main);
-            font-size: 1rem;
-            padding: 10px 8px;
-            font-weight: 600;
-            width: 100%;
-            -moz-appearance: textfield;
-        }
-
-        .input-wrapper input::-webkit-outer-spin-button,
-        .input-wrapper input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
-        .input-wrapper input:focus {
-            outline: none;
-        }
-
-        .input-unit {
-            padding-right: 12px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: var(--accent-cyan);
-            white-space: nowrap;
-        }
+        .input-wrapper:focus-within { border-color: var(--accent-cyan); box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.15); }
+        .input-icon { padding-left: 10px; color: var(--text-muted); font-size: 0.9rem; width: 32px; text-align: center; }
         
-        .input-unit.percent {
-            color: var(--accent-warning);
+        .input-wrapper input {
+            flex: 1; background: transparent; border: none; color: var(--text-main);
+            font-size: 1rem; padding: 10px 8px; font-weight: 600; width: 100%; -moz-appearance: textfield;
         }
+        .input-wrapper input::-webkit-outer-spin-button, .input-wrapper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .input-wrapper input:focus { outline: none; }
+        
+        .input-unit { padding-right: 12px; font-size: 0.8rem; font-weight: 700; color: var(--accent-cyan); white-space: nowrap; }
+        .input-unit.percent { color: var(--accent-warning); }
 
         /* 儀表板自適應排列 */
         .summary-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 10px;
-            margin-bottom: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px; margin-bottom: 16px;
         }
 
         .summary-box {
-            background: rgba(11, 15, 25, 0.4);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 12px;
-            text-align: center;
-            transition: border-color 0.2s;
+            background: rgba(11, 15, 25, 0.4); border: 1px solid var(--border);
+            border-radius: 10px; padding: 12px; text-align: center; transition: border-color 0.2s;
         }
 
-        .summary-box.highlight {
-            border-color: rgba(6, 182, 212, 0.3);
-            background: linear-gradient(135deg, rgba(6, 182, 212, 0.02), rgba(59, 130, 246, 0.02));
+        /* 重點強調：所需年數、退休年齡 */
+        .summary-box.primary-highlight {
+            border-color: rgba(6, 182, 212, 0.4);
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.05), rgba(59, 130, 246, 0.05));
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.1);
         }
+        .summary-box.primary-highlight i { color: var(--accent-cyan); }
+        .summary-box.primary-highlight .value { color: var(--accent-cyan); font-size: 1.4rem; }
 
-        .summary-box.monte-carlo {
-            border-width: 1.5px;
-            background: rgba(11, 15, 25, 0.6);
+        /* 專家參數弱化：蒙地卡羅 */
+        .summary-box.advanced-stat {
+            border-style: dashed;
+            opacity: 0.85;
+            background: rgba(0, 0, 0, 0.2);
         }
+        .summary-box.advanced-stat .title { font-size: 0.7rem; }
+        .summary-box.advanced-stat .value { font-size: 1.1rem; }
 
-        .summary-box i {
-            font-size: 1.1rem;
-            margin-bottom: 4px;
-            color: var(--text-muted);
-        }
-
-        .summary-box .title {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-bottom: 4px;
-        }
-
-        .summary-box .value {
-            font-size: 1.25rem;
-            font-weight: 800;
-            color: var(--text-main);
-        }
+        .summary-box i { font-size: 1.1rem; margin-bottom: 4px; color: var(--text-muted); }
+        .summary-box .title { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; }
+        .summary-box .value { font-size: 1.25rem; font-weight: 800; color: var(--text-main); }
 
         @media (max-width: 600px) {
-            .summary-grid {
-                grid-template-columns: 1fr;
-                gap: 8px;
-            }
-            .summary-box {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                text-align: left;
-                padding: 10px 14px;
-            }
-            .summary-box i {
-                margin-bottom: 0;
-                margin-right: 10px;
-                font-size: 1rem;
-                width: 20px;
-            }
-            .summary-box .title {
-                margin-bottom: 0;
-                font-size: 0.85rem;
-                flex: 1;
-            }
-            .summary-box .value {
-                font-size: 1.1rem;
-                text-align: right;
-            }
+            .summary-grid { grid-template-columns: 1fr; gap: 8px; }
+            .summary-box { display: flex; align-items: center; justify-content: space-between; text-align: left; padding: 10px 14px; }
+            .summary-box i { margin-bottom: 0; margin-right: 10px; font-size: 1rem; width: 20px; }
+            .summary-box .title { margin-bottom: 0; font-size: 0.85rem; flex: 1; }
+            .summary-box .value { font-size: 1.1rem; text-align: right; }
+            .summary-box.primary-highlight .value { font-size: 1.2rem; }
         }
 
-        .chart-container {
-            height: 320px;
-            width: 100%;
-            position: relative;
-            margin-top: 10px;
-        }
-
-        .table-responsive {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            max-height: 350px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            width: 100%;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.8rem;
-            text-align: right;
-            min-width: 650px;
-        }
-
-        th {
-            background-color: #0b0f19;
-            color: var(--accent-cyan);
-            padding: 10px;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            font-weight: 600;
-            border-bottom: 2px solid var(--border);
-        }
-
-        td {
-            padding: 8px 10px;
-            border-bottom: 1px solid rgba(39, 53, 73, 0.3);
-            color: var(--text-main);
-        }
-
-        tbody tr:hover {
-            background-color: rgba(59, 130, 246, 0.03);
-        }
-
+        .chart-container { height: 320px; width: 100%; position: relative; margin-top: 10px; }
+        .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; max-height: 350px; border-radius: 8px; border: 1px solid var(--border); width: 100%; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; text-align: right; min-width: 650px; }
+        th { background-color: #0b0f19; color: var(--accent-cyan); padding: 10px; position: sticky; top: 0; z-index: 10; font-weight: 600; border-bottom: 2px solid var(--border); }
+        td { padding: 8px 10px; border-bottom: 1px solid rgba(39, 53, 73, 0.3); color: var(--text-main); }
+        tbody tr:hover { background-color: rgba(59, 130, 246, 0.03); }
         th:first-child, td:first-child { text-align: center; }
         th:last-child, td:last-child { text-align: center; }
-
+        
         .status-safe { color: var(--accent-green); font-weight: 600; }
         .status-danger { color: var(--accent-danger); font-weight: 600; }
-
-        .notice-info {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            margin-top: 8px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
+        .notice-info { font-size: 0.7rem; color: var(--text-muted); margin-top: 8px; display: flex; align-items: center; gap: 4px; }
     </style>
 </head>
 <body>
@@ -355,7 +190,7 @@
             <i class="fa-solid fa-rocket"></i>
             <h1>PRO FIRE 動態退休推估引擎</h1>
         </div>
-        <p><i class="fa-solid fa-shield-halved"></i> 1,000次蒙地卡羅壓力模擬整合版</p>
+        <p><i class="fa-solid fa-check-double"></i> 專注重點指標版</p>
     </header>
 
     <!-- 左側參數設定 -->
@@ -444,18 +279,14 @@
                 </div>
             </div>
 
-            <h2><i class="fa-solid fa-chart-line"></i> 蒙地卡羅波動參數</h2>
+            <h2 style="margin-top:20px;"><i class="fa-solid fa-microscope"></i> 蒙地卡羅模擬參數</h2>
             <div class="input-group">
-                <label>投資組合年化波動度 (標準差)</label>
+                <label>年化波動度 (標準差)</label>
                 <div class="input-wrapper">
                     <i class="fa-solid fa-arrow-trend-up input-icon"></i>
                     <input type="number" id="portfolioVolatility" value="7.0" step="0.1" inputmode="decimal">
                     <span class="input-unit percent">%</span>
                 </div>
-            </div>
-            
-            <div class="notice-info">
-                <i class="fa-solid fa-circle-info"></i> 波動度用於模擬現實金融市場的隨機牛熊市震盪。
             </div>
         </div>
     </aside>
@@ -463,36 +294,39 @@
     <!-- 右側結果展示 -->
     <main>
         <div class="card">
-            <h2><i class="fa-solid fa-chart-pie"></i> 綜合評估與風險壓力測試</h2>
+            <h2><i class="fa-solid fa-chart-pie"></i> 綜合評估結果</h2>
             <div class="summary-grid">
-                <div class="summary-box monte-carlo" id="mcCard">
-                    <i class="fa-solid fa-shield-halved"></i>
-                    <div class="title">蒙地卡羅模擬成功率</div>
-                    <div class="value" id="resMonteCarlo">0%</div>
-                </div>
-                <div class="summary-box">
+                <!-- 重點指標移至最前面並突顯 -->
+                <div class="summary-box primary-highlight">
                     <i class="fa-solid fa-hourglass-half"></i>
-                    <div class="title">所需年數 (精確值)</div>
+                    <div class="title">距離退休仍需</div>
                     <div class="value" id="resYears">0.0 年</div>
                 </div>
-                <div class="summary-box highlight">
+                <div class="summary-box primary-highlight">
                     <i class="fa-solid fa-flag-checkered"></i>
-                    <div class="title">可退休年齡</div>
+                    <div class="title">推估可退休年齡</div>
                     <div class="value" id="resRetireAge">0 歲</div>
                 </div>
+                <!-- 次要金額指標 -->
                 <div class="summary-box">
                     <i class="fa-solid fa-sack-dollar"></i>
                     <div class="title">目標終值 (今日購買力)</div>
                     <div class="value" id="resTargetToday">$0</div>
                 </div>
-                <div class="summary-box highlight">
+                <div class="summary-box">
                     <i class="fa-solid fa-hand-holding-dollar"></i>
                     <div class="title">首年提領 (今日購買力)</div>
                     <div class="value" id="resFirstWithdrawalToday">$0</div>
                 </div>
+                <!-- 專家指標弱化並移至最後 -->
+                <div class="summary-box advanced-stat" id="mcCard" title="基於歷史波動率的隨機壓力測試">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <div class="title">蒙地卡羅成功率</div>
+                    <div class="value" id="resMonteCarlo">0%</div>
+                </div>
             </div>
 
-            <!-- 折線圖：整合確定路徑與隨機機率百分位線 -->
+            <!-- 折線圖 -->
             <div class="chart-container">
                 <canvas id="wealthChart"></canvas>
             </div>
@@ -531,7 +365,6 @@
         return '$' + Math.round(value);
     };
 
-    // Box-Muller 轉換產生常態分佈隨機數
     function gaussianRandom(mean, std) {
         let u = 0, v = 0;
         while(u === 0) u = Math.random();
@@ -561,7 +394,7 @@
                         pointRadius: 0
                     },
                     {
-                        label: '市場樂觀前 10% 情況 (P90)',
+                        label: '樂觀前 10% (P90)',
                         data: [],
                         borderColor: '#10b981',
                         borderWidth: 1.5,
@@ -571,7 +404,7 @@
                         pointRadius: 0
                     },
                     {
-                        label: '市場中位數常態情況 (P50)',
+                        label: '常態情況 (P50)',
                         data: [],
                         borderColor: '#3b82f6',
                         borderWidth: 1.5,
@@ -581,7 +414,7 @@
                         pointRadius: 0
                     },
                     {
-                        label: '市場極端惡劣 10% 情況 (P10)',
+                        label: '惡劣前 10% (P10)',
                         data: [],
                         borderColor: '#f43f5e',
                         borderWidth: 1.5,
@@ -636,7 +469,6 @@
         
         const lifeExpectancy = parseFloat(document.getElementById('lifeExpectancy').value) || 0;
 
-        // 1. 計算確定性模型所需年數
         let yearsToTarget = 0;
         if (currentAsset < targetAsset) {
             if (portfolioReturn > 0) {
@@ -654,12 +486,11 @@
         const retirementAge = currentAge + yearsToTarget;
         const totalTimelineYears = Math.ceil(lifeExpectancy - currentAge);
 
-        // 阻斷不合常理的基礎參數
         if (!isFinite(retirementAge) || retirementAge > lifeExpectancy || totalTimelineYears <= 0) {
             document.getElementById('resYears').innerText = '無法達成';
             document.getElementById('resRetireAge').innerText = '-';
             document.getElementById('resMonteCarlo').innerText = '0%';
-            document.getElementById('tableBody').innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 25px; color: var(--accent-danger);">無法在預估壽命內達標，請檢視或調高策略參數。</td></tr>';
+            document.getElementById('tableBody').innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 25px; color: var(--accent-danger);">無法在預估壽命內達標，請檢視參數。</td></tr>';
             if(wealthChart) {
                 for(let d of wealthChart.data.datasets) d.data = [];
                 wealthChart.data.labels = [];
@@ -677,7 +508,6 @@
         document.getElementById('resTargetToday').innerText = formatCurrency(targetInTodayMoney);
         document.getElementById('resFirstWithdrawalToday').innerText = formatCurrency(firstYearWithdrawalToday);
 
-        // 2. 蒙地卡羅 1,000 次隨機路徑壓力模擬
         const iterations = 1000;
         let successCount = 0;
         let allPaths = [];
@@ -691,72 +521,52 @@
                 let age = currentAge + y;
 
                 if (age <= retirementAge) {
-                    // 累積期：資產隨機增長 + 每年再投入
                     let r = gaussianRandom(portfolioReturn, volatility);
                     simBalance = simBalance * (1 + r) + annualInvestment;
                 } else {
-                    // 退休提領期：扣除隨通膨調整的提領金 + 剩餘資金隨機增長
-                    if (simWithdrawal === 0) {
-                        simWithdrawal = firstYearWithdrawal; 
-                    }
+                    if (simWithdrawal === 0) { simWithdrawal = firstYearWithdrawal; }
                     simBalance = simBalance - simWithdrawal;
                     
                     if (simBalance > 0) {
-                        // 退休後一般而言波動度會隨保守配置下降，此處乘上 0.8
                         let r = gaussianRandom(postRetirementReturn, volatility * 0.8);
                         simBalance = simBalance * (1 + r);
-                    } else {
-                        simBalance = 0;
-                    }
+                    } else { simBalance = 0; }
                     simWithdrawal = simWithdrawal * (1 + inflationRate);
                 }
                 singlePath.push(Math.max(0, simBalance));
             }
             allPaths.push(singlePath);
-            // 若到預估壽命終點時資產仍大於 0，視為模擬成功
-            if (singlePath[singlePath.length - 1] > 0) {
-                successCount++;
-            }
+            if (singlePath[singlePath.length - 1] > 0) { successCount++; }
         }
 
-        // 計算並動態渲染蒙地卡羅成功率
         const successRate = (successCount / iterations) * 100;
         const mcValue = document.getElementById('resMonteCarlo');
         const mcCard = document.getElementById('mcCard');
         mcValue.innerText = successRate.toFixed(1) + '%';
         
         if (successRate >= 80) {
-            mcCard.style.borderColor = 'var(--accent-green)';
             mcValue.style.color = 'var(--accent-green)';
         } else if (successRate >= 50) {
-            mcCard.style.borderColor = 'var(--accent-warning)';
             mcValue.style.color = 'var(--accent-warning)';
         } else {
-            mcCard.style.borderColor = 'var(--accent-danger)';
             mcValue.style.color = 'var(--accent-danger)';
         }
 
-        // 3. 提取蒙地卡羅各年份的機率百分位數 (P10, P50, P90)
         let p10Data = [], p50Data = [], p90Data = [], chartLabels = [];
         for (let y = 0; y <= totalTimelineYears; y++) {
             let yearBalances = [];
-            for (let i = 0; i < iterations; i++) {
-                yearBalances.push(allPaths[i][y]);
-            }
+            for (let i = 0; i < iterations; i++) { yearBalances.push(allPaths[i][y]); }
             yearBalances.sort((a, b) => a - b);
-            p10Data.push(yearBalances[100]); // 惡劣市場 (P10)
-            p50Data.push(yearBalances[500]); // 中位常態 (P50)
-            p90Data.push(yearBalances[900]); // 樂觀市場 (P90)
+            p10Data.push(yearBalances[100]); 
+            p50Data.push(yearBalances[500]); 
+            p90Data.push(yearBalances[900]); 
             chartLabels.push(Math.round(currentAge + y) + '歲');
         }
 
-        // 4. 計算預期確定性路徑（用於生成下方的表格，並畫在圖表上作為對比基準）
         let detBalance = currentAsset;
         let detData = [detBalance];
         let detWithdrawal = 0;
         let tbodyContent = '';
-
-        let startRetireAge = Math.floor(retirementAge);
 
         for (let y = 1; y <= totalTimelineYears; y++) {
             let age = currentAge + y;
@@ -777,13 +587,11 @@
                 if (detBalance > 0) {
                     returnAmountRow = detBalance * postRetirementReturn;
                     detBalance = detBalance + returnAmountRow;
-                } else {
-                    detBalance = 0;
-                }
+                } else { detBalance = 0; }
+                
                 detData.push(detBalance);
                 detWithdrawal = detWithdrawal * (1 + inflationRate);
 
-                // 只將「退休後」的詳細數據塞入網頁下方的水位明細表，維持排版精簡
                 let isSafe = detBalance > 0;
                 let statusLabel = isSafe ? '<span class="status-safe">Safe</span>' : '<span class="status-danger">耗盡</span>';
                 tbodyContent += `
@@ -801,13 +609,12 @@
         }
         document.getElementById('tableBody').innerHTML = tbodyContent;
 
-        // 5. 更新 Chart.js 多線段數據
         if (wealthChart) {
             wealthChart.data.labels = chartLabels;
-            wealthChart.data.datasets[0].data = detData; // 確定性規劃線
-            wealthChart.data.datasets[1].data = p90Data; // 樂觀前 10%
-            wealthChart.data.datasets[2].data = p50Data; // 中位數
-            wealthChart.data.datasets[3].data = p10Data; // 惡劣前 10%
+            wealthChart.data.datasets[0].data = detData; 
+            wealthChart.data.datasets[1].data = p90Data; 
+            wealthChart.data.datasets[2].data = p50Data; 
+            wealthChart.data.datasets[3].data = p10Data; 
             wealthChart.update();
         }
     }
