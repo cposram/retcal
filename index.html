@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRO FIRE 動態退休推估引擎</title>
+    <title>PRO FIRE 動態退休推估引擎 V3</title>
     <!-- 引入 FontAwesome 圖示庫 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- 引入 Chart.js 圖表庫 -->
@@ -12,10 +12,10 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap');
 
         :root {
-            /* 科技暗黑系配色 */
-            --bg-dark: #0f172a;
-            --bg-card: #1e293b;
-            --bg-input: #0f172a;
+            /* 科技暗黑系配色 - 優化高對比與護眼 */
+            --bg-dark: #0b0f19;
+            --bg-card: #151f32;
+            --bg-input: #0b0f19;
             
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
@@ -26,9 +26,9 @@
             --accent-danger: #f43f5e;
             --accent-warning: #f59e0b;
 
-            --border: #334155;
-            --glow-cyan: 0 0 15px rgba(6, 182, 212, 0.4);
-            --glow-green: 0 0 15px rgba(16, 185, 129, 0.4);
+            --border: #273549;
+            --glow-cyan: 0 0 15px rgba(6, 182, 212, 0.35);
+            --glow-green: 0 0 15px rgba(16, 185, 129, 0.35);
         }
 
         * {
@@ -36,12 +36,13 @@
             margin: 0;
             padding: 0;
             font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
         /* 自訂卷軸 */
         ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
         }
         ::-webkit-scrollbar-track {
             background: var(--bg-dark);
@@ -50,29 +51,26 @@
             background: var(--border);
             border-radius: 4px;
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--text-muted);
-        }
 
         body {
             background-color: var(--bg-dark);
             color: var(--text-main);
             line-height: 1.6;
-            padding: 20px;
+            padding: 15px;
             background-image: 
-                radial-gradient(circle at 15% 50%, rgba(6, 182, 212, 0.05), transparent 25%),
-                radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.05), transparent 25%);
+                radial-gradient(circle at 10% 30%, rgba(6, 182, 212, 0.03), transparent 30%),
+                radial-gradient(circle at 90% 70%, rgba(16, 185, 129, 0.03), transparent 30%);
         }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
             display: grid;
-            grid-template-columns: 350px 1fr;
-            gap: 25px;
+            grid-template-columns: 380px 1fr;
+            gap: 20px;
         }
 
-        @media (max-width: 1024px) {
+        @media (max-width: 1100px) {
             .container {
                 grid-template-columns: 1fr;
             }
@@ -81,24 +79,30 @@
         /* 標題區 */
         header {
             grid-column: 1 / -1;
-            padding: 20px 0;
+            padding: 15px 5px;
             display: flex;
             align-items: center;
-            gap: 15px;
+            justify-content: space-between;
             border-bottom: 1px solid var(--border);
-            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
-        header i {
-            font-size: 2.5rem;
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        header i.fa-rocket {
+            font-size: 2.2rem;
             color: var(--accent-cyan);
             text-shadow: var(--glow-cyan);
         }
 
         header h1 {
-            font-size: 2rem;
+            font-size: 1.6rem;
             font-weight: 800;
-            letter-spacing: 1px;
             background: linear-gradient(90deg, #06b6d4, #3b82f6);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -106,49 +110,60 @@
 
         header p {
             color: var(--text-muted);
-            margin-left: auto;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            background: rgba(39, 53, 73, 0.4);
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
         }
 
         /* 卡片共用樣式 */
         .card {
             background: var(--bg-card);
             border-radius: 16px;
-            padding: 25px;
+            padding: 22px;
             border: 1px solid var(--border);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
             position: relative;
-            overflow: hidden;
-        }
-
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 4px;
-            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
-            opacity: 0.8;
         }
 
         .card h2 {
-            font-size: 1.2rem;
+            font-size: 1.15rem;
             color: var(--text-main);
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
             gap: 10px;
+            border-bottom: 1px solid rgba(39, 53, 73, 0.5);
+            padding-bottom: 10px;
         }
 
-        /* 參數設定區 (左側) */
+        /* 參數輸入表單優化 (適合手機輸入) */
+        .input-grid-two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 480px) {
+            .input-grid-two-col {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .input-group {
-            margin-bottom: 20px;
+            margin-bottom: 18px;
+        }
+
+        .input-group.full-width {
+            grid-column: 1 / -1;
         }
 
         .input-group label {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.9rem;
+            display: block;
+            font-size: 0.85rem;
             color: var(--text-muted);
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             font-weight: 500;
         }
 
@@ -158,110 +173,116 @@
             align-items: center;
             background: var(--bg-input);
             border: 1px solid var(--border);
-            border-radius: 8px;
-            transition: all 0.3s ease;
+            border-radius: 10px;
+            transition: all 0.25s ease;
         }
 
         .input-wrapper:focus-within {
             border-color: var(--accent-cyan);
-            box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
+            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.15);
         }
 
         .input-icon {
-            padding: 0 15px;
-            color: var(--accent-cyan);
+            padding-left: 12px;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            width: 35px;
+            text-align: center;
         }
 
-        .input-wrapper input[type="number"] {
+        .input-wrapper input {
             flex: 1;
             background: transparent;
             border: none;
             color: var(--text-main);
             font-size: 1.1rem;
-            padding: 12px 10px 12px 0;
+            padding: 12px 10px;
             font-weight: 600;
             width: 100%;
+            -moz-appearance: textfield;
+        }
+
+        /* 隱藏數字輸入框的上下箭頭，方便手機輸入 */
+        .input-wrapper input::-webkit-outer-spin-button,
+        .input-wrapper input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
         }
 
         .input-wrapper input:focus {
             outline: none;
         }
 
-        /* 範圍滑桿 Range Slider */
-        .range-slider {
-            -webkit-appearance: none;
-            width: 100%;
-            height: 4px;
-            background: var(--border);
-            border-radius: 2px;
-            outline: none;
-            margin-top: 10px;
+        .input-unit {
+            padding-right: 14px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            white-space: nowrap;
         }
         
-        .range-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: var(--accent-cyan);
-            cursor: pointer;
-            box-shadow: var(--glow-cyan);
-            transition: 0.2s;
+        .input-unit.percent {
+            color: var(--accent-warning);
         }
 
-        .range-slider::-webkit-slider-thumb:hover {
-            transform: scale(1.2);
-        }
-
-        /* 右側：重點結果區 */
+        /* 右側：數據儀表板 */
         .summary-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .summary-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
         }
 
         .summary-box {
-            background: rgba(15, 23, 42, 0.6);
+            background: rgba(11, 15, 25, 0.5);
             border: 1px solid var(--border);
             border-radius: 12px;
-            padding: 20px;
+            padding: 16px;
             text-align: center;
-            transition: transform 0.3s ease;
+            transition: transform 0.2s ease, border-color 0.2s ease;
         }
 
         .summary-box:hover {
-            transform: translateY(-5px);
             border-color: var(--accent-blue);
         }
 
         .summary-box.highlight {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.1));
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.06), rgba(6, 182, 212, 0.06));
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+
+        .summary-box.highlight:hover {
             border-color: var(--accent-green);
-            box-shadow: var(--glow-green);
         }
 
         .summary-box i {
-            font-size: 1.5rem;
-            margin-bottom: 10px;
+            font-size: 1.2rem;
+            margin-bottom: 6px;
             color: var(--text-muted);
         }
 
         .summary-box.highlight i {
             color: var(--accent-green);
+            text-shadow: var(--glow-green);
         }
 
         .summary-box .title {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: var(--text-muted);
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
         .summary-box .value {
-            font-size: 1.8rem;
+            font-size: 1.4rem;
             font-weight: 800;
             color: var(--text-main);
+            letter-spacing: -0.5px;
         }
 
         .summary-box.highlight .value {
@@ -270,46 +291,45 @@
 
         /* 圖表區塊 */
         .chart-container {
-            height: 300px;
+            height: 280px;
             width: 100%;
-            margin-bottom: 25px;
+            margin-top: 10px;
         }
 
         /* 表格區塊 */
         .table-responsive {
             overflow-x: auto;
-            max-height: 500px;
-            border-radius: 8px;
+            max-height: 450px;
+            border-radius: 10px;
             border: 1px solid var(--border);
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             text-align: right;
         }
 
         th {
-            background-color: #0f172a;
+            background-color: #0b0f19;
             color: var(--accent-cyan);
-            padding: 15px;
+            padding: 12px;
             position: sticky;
             top: 0;
             z-index: 10;
             font-weight: 600;
-            letter-spacing: 1px;
             border-bottom: 2px solid var(--border);
         }
 
         td {
-            padding: 12px 15px;
-            border-bottom: 1px solid var(--border);
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(39, 53, 73, 0.4);
             color: var(--text-main);
         }
 
         tbody tr:hover {
-            background-color: rgba(59, 130, 246, 0.1);
+            background-color: rgba(59, 130, 246, 0.05);
         }
 
         th:first-child, td:first-child { text-align: center; }
@@ -320,12 +340,12 @@
             font-weight: 600;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
         }
         .status-safe::before {
             content: '';
             display: inline-block;
-            width: 8px; height: 8px;
+            width: 6px; height: 6px;
             border-radius: 50%;
             background: var(--accent-green);
             box-shadow: var(--glow-green);
@@ -336,39 +356,59 @@
             font-weight: 600;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
         }
         .status-danger::before {
             content: '';
             display: inline-block;
-            width: 8px; height: 8px;
+            width: 6px; height: 6px;
             border-radius: 50%;
             background: var(--accent-danger);
-            box-shadow: 0 0 10px rgba(244, 63, 94, 0.6);
+            box-shadow: 0 0 8px rgba(244, 63, 94, 0.6);
         }
 
+        .notice-info {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
-        <i class="fa-solid fa-rocket"></i>
-        <div>
-            <h1>PRO FIRE 動態退休推估引擎</h1>
+        <div class="header-title">
+            <i class="fa-solid fa-rocket"></i>
+            <h1>PRO FIRE 動態退休推估引擎 V3</h1>
         </div>
-        <p><i class="fa-solid fa-bolt"></i> 即時運算・無縫互動</p>
+        <p><i class="fa-solid fa-mobile-screen-button"></i> 行動優化・萬元簡化版</p>
     </header>
 
-    <!-- 左側：參數設定 -->
+    <!-- 左側：參數設定 (改回純填寫，適合手機輸入) -->
     <aside class="card">
         <h2><i class="fa-solid fa-sliders"></i> 策略參數設定</h2>
         
-        <div class="input-group">
-            <label>目前年齡</label>
-            <div class="input-wrapper">
-                <i class="fa-regular fa-user input-icon"></i>
-                <input type="number" id="currentAge" value="55" step="1">
+        <div class="input-grid-two-col">
+            <div class="input-group">
+                <label>目前年齡</label>
+                <div class="input-wrapper">
+                    <i class="fa-regular fa-user input-icon"></i>
+                    <input type="number" id="currentAge" value="37" inputmode="numeric">
+                    <span class="input-unit">歲</span>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>預估壽命</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-heart-pulse input-icon"></i>
+                    <input type="number" id="lifeExpectancy" value="85" inputmode="numeric">
+                    <span class="input-unit">歲</span>
+                </div>
             </div>
         </div>
 
@@ -376,84 +416,92 @@
             <label>目標資產終值</label>
             <div class="input-wrapper">
                 <i class="fa-solid fa-crosshairs input-icon"></i>
-                <input type="number" id="targetAsset" value="20000000" step="100000">
+                <input type="number" id="targetAsset" value="4000" inputmode="numeric">
+                <span class="input-unit">萬元</span>
             </div>
         </div>
 
         <div class="input-group">
-            <label>目前投資組合總市值</label>
+            <label>目前投資組合市值</label>
             <div class="input-wrapper">
                 <i class="fa-solid fa-wallet input-icon"></i>
-                <input type="number" id="currentAsset" value="10000000" step="10000">
+                <input type="number" id="currentAsset" value="1867" inputmode="numeric">
+                <span class="input-unit">萬元</span>
             </div>
         </div>
 
         <div class="input-group">
-            <label>預計每年再投入金額(不含股息)</label>
+            <label>預計每年再投入金額</label>
             <div class="input-wrapper">
                 <i class="fa-solid fa-coins input-icon"></i>
-                <input type="number" id="annualInvestment" value="250000" step="10000">
+                <input type="number" id="annualInvestment" value="50" inputmode="numeric">
+                <span class="input-unit">萬元</span>
             </div>
         </div>
 
-        <!-- 帶有滑桿的百分比參數 -->
-        <div class="input-group">
-            <label><span>投資組合加權報酬率</span> <span id="lblPortfolioReturn" style="color:var(--accent-cyan);">7.0%</span></label>
-            <input type="range" class="range-slider" id="sldPortfolioReturn" min="0" max="20" step="0.1" value="7.0">
-            <input type="hidden" id="portfolioReturn" value="7">
-        </div>
-
-        <div class="input-group">
-            <label><span>預估通貨膨脹率</span> <span id="lblInflationRate" style="color:var(--accent-warning);">2.0%</span></label>
-            <input type="range" class="range-slider" id="sldInflationRate" min="0" max="10" step="0.1" value="2.0">
-            <input type="hidden" id="inflationRate" value="2">
-        </div>
-
-        <div class="input-group">
-            <label><span>退休後安全提領率</span> <span id="lblWithdrawalRate" style="color:var(--accent-green);">4.0%</span></label>
-            <input type="range" class="range-slider" id="sldWithdrawalRate" min="1" max="10" step="0.1" value="4.0">
-            <input type="hidden" id="withdrawalRate" value="4">
-        </div>
-
-        <div class="input-group">
-            <label><span>退休後保守報酬率</span> <span id="lblPostRetirementReturn" style="color:var(--accent-blue);">6.0%</span></label>
-            <input type="range" class="range-slider" id="sldPostRetirementReturn" min="0" max="15" step="0.1" value="6.0">
-            <input type="hidden" id="postRetirementReturn" value="6">
-        </div>
-
-        <div class="input-group">
-            <label>預估壽命</label>
-            <div class="input-wrapper">
-                <i class="fa-solid fa-heart-pulse input-icon"></i>
-                <input type="number" id="lifeExpectancy" value="85" step="1">
+        <div class="input-grid-two-col">
+            <div class="input-group">
+                <label>投資加權報酬率</label>
+                <div class="input-wrapper">
+                    <input type="number" id="portfolioReturn" value="7.0" step="0.1" inputmode="decimal" style="padding-left:14px;">
+                    <span class="input-unit percent">%</span>
+                </div>
             </div>
+
+            <div class="input-group">
+                <label>預估通貨膨脹率</label>
+                <div class="input-wrapper">
+                    <input type="number" id="inflationRate" value="2.0" step="0.1" inputmode="decimal" style="padding-left:14px;">
+                    <span class="input-unit percent">%</span>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>退休安全提領率</label>
+                <div class="input-wrapper">
+                    <input type="number" id="withdrawalRate" value="4.0" step="0.1" inputmode="decimal" style="padding-left:14px;">
+                    <span class="input-unit percent">%</span>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>退休後保守報酬率</label>
+                <div class="input-wrapper">
+                    <input type="number" id="postRetirementReturn" value="6.0" step="0.1" inputmode="decimal" style="padding-left:14px;">
+                    <span class="input-unit percent">%</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="notice-info">
+            <i class="fa-solid fa-circle-info"></i> 大額數字均已簡化為「萬元」為單位。
         </div>
     </aside>
 
     <!-- 右側：結果與圖表 -->
     <main>
         <!-- 結果摘要 -->
-        <div class="card" style="margin-bottom: 25px;">
+        <div class="card" style="margin-bottom: 20px;">
             <h2><i class="fa-solid fa-chart-pie"></i> 退休推估結果</h2>
             <div class="summary-grid">
                 <div class="summary-box">
                     <i class="fa-solid fa-hourglass-half"></i>
-                    <div class="title">距離達標所需年數</div>
+                    <div class="title">所需年數</div>
                     <div class="value" id="resYears">0.0 年</div>
                 </div>
                 <div class="summary-box highlight">
                     <i class="fa-solid fa-flag-checkered"></i>
-                    <div class="title">推估可退休年齡</div>
+                    <div class="title">可退休年齡</div>
                     <div class="value" id="resRetireAge">0 歲</div>
                 </div>
                 <div class="summary-box">
                     <i class="fa-solid fa-sack-dollar"></i>
-                    <div class="title">目標終值 <span style="font-size:0.7rem">(等值今日)</span></div>
+                    <div class="title">目標終值 <span style="font-size:0.7rem;opacity:0.7;">(等值今日)</span></div>
                     <div class="value" id="resTargetToday">$0</div>
                 </div>
                 <div class="summary-box highlight">
                     <i class="fa-solid fa-hand-holding-dollar"></i>
-                    <div class="title">首年提領 <span style="font-size:0.7rem">(等值今日)</span></div>
+                    <div class="title">首年提領 <span style="font-size:0.7rem;opacity:0.7;">(等值今日)</span></div>
                     <div class="value" id="resFirstWithdrawalToday">$0</div>
                 </div>
             </div>
@@ -466,16 +514,16 @@
 
         <!-- 提領動態表 -->
         <div class="card">
-            <h2><i class="fa-solid fa-table"></i> 退休後資金水位模擬表 <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal; margin-left:10px;">(考慮通膨與投資增長)</span></h2>
+            <h2><i class="fa-solid fa-table"></i> 退休後資金水位模擬表 <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal; margin-left:5px;">(已調整通膨與增長)</span></h2>
             <div class="table-responsive">
                 <table>
                     <thead>
                         <tr>
                             <th>年齡</th>
                             <th>年初資金</th>
-                            <th>當年提領 <span style="font-size:0.75rem; color:var(--text-muted);">(隨通膨遞增)</span></th>
-                            <th>實質購買力 <span style="font-size:0.75rem; color:var(--text-muted);">(等值今日)</span></th>
-                            <th>投資孳息</th>
+                            <th>當年提領 <span style="font-size:0.7rem; color:var(--text-muted);">(隨通膨遞增)</span></th>
+                            <th>實質購買力 <span style="font-size:0.7rem; color:var(--text-muted);">(今日)</span></th>
+                            <th>投資利息</th>
                             <th>年底剩餘資金</th>
                             <th>狀態</th>
                         </tr>
@@ -490,28 +538,13 @@
 </div>
 
 <script>
-    // 數字格式化
+    // 數字格式化為貨幣（含千分位，並轉換為萬顯示或保持全稱）
     const formatCurrency = (value) => {
+        if (value >= 10000) {
+            return '$' + (value / 10000).toFixed(1) + '萬';
+        }
         return new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', maximumFractionDigits: 0 }).format(value);
     };
-
-    // 綁定滑桿與數值顯示
-    const bindSlider = (sliderId, labelId, hiddenId, suffix) => {
-        const slider = document.getElementById(sliderId);
-        const label = document.getElementById(labelId);
-        const hidden = document.getElementById(hiddenId);
-        slider.addEventListener('input', (e) => {
-            const val = parseFloat(e.target.value).toFixed(1);
-            label.innerText = val + suffix;
-            hidden.value = val;
-            calculate(); // 觸發計算
-        });
-    };
-
-    bindSlider('sldPortfolioReturn', 'lblPortfolioReturn', 'portfolioReturn', '%');
-    bindSlider('sldInflationRate', 'lblInflationRate', 'inflationRate', '%');
-    bindSlider('sldWithdrawalRate', 'lblWithdrawalRate', 'withdrawalRate', '%');
-    bindSlider('sldPostRetirementReturn', 'lblPostRetirementReturn', 'postRetirementReturn', '%');
 
     // Chart.js 實例
     let wealthChart = null;
@@ -529,10 +562,10 @@
                     label: '年底剩餘資金',
                     data: [],
                     borderColor: '#06b6d4',
-                    backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                    backgroundColor: 'rgba(6, 182, 212, 0.08)',
                     borderWidth: 2,
                     fill: true,
-                    tension: 0.4,
+                    tension: 0.3,
                     pointRadius: 0,
                     pointHitRadius: 10,
                 }]
@@ -547,15 +580,15 @@
                         intersect: false,
                         callbacks: {
                             label: function(context) {
-                                return formatCurrency(context.parsed.y);
+                                return '剩餘資金: ' + formatCurrency(context.parsed.y);
                             }
                         }
                     }
                 },
                 scales: {
-                    x: { grid: { color: '#334155', drawBorder: false } },
+                    x: { grid: { color: '#273549', drawBorder: false } },
                     y: { 
-                        grid: { color: '#334155', drawBorder: false },
+                        grid: { color: '#273549', drawBorder: false },
                         ticks: { callback: function(value) { return value / 10000 + '萬'; } }
                     }
                 }
@@ -565,10 +598,11 @@
 
     // 核心計算
     function calculate() {
+        // 從欄位抓取資料並還原單位（輸入為萬元，還原為元計算）
         const currentAge = parseFloat(document.getElementById('currentAge').value) || 0;
-        const targetAsset = parseFloat(document.getElementById('targetAsset').value) || 0;
-        const currentAsset = parseFloat(document.getElementById('currentAsset').value) || 0;
-        const annualInvestment = parseFloat(document.getElementById('annualInvestment').value) || 0;
+        const targetAsset = (parseFloat(document.getElementById('targetAsset').value) || 0) * 10000;
+        const currentAsset = (parseFloat(document.getElementById('currentAsset').value) || 0) * 10000;
+        const annualInvestment = (parseFloat(document.getElementById('annualInvestment').value) || 0) * 10000;
         
         const portfolioReturn = (parseFloat(document.getElementById('portfolioReturn').value) || 0) / 100;
         const inflationRate = (parseFloat(document.getElementById('inflationRate').value) || 0) / 100;
@@ -596,21 +630,21 @@
         const firstYearWithdrawal = targetAsset * withdrawalRate;
         const firstYearWithdrawalToday = firstYearWithdrawal / Math.pow(1 + inflationRate, yearsToTarget);
 
+        // 更新頂部儀表板數據
         document.getElementById('resYears').innerText = isFinite(yearsToTarget) ? `${yearsToTarget.toFixed(1)} 年` : '無法達成';
         document.getElementById('resRetireAge').innerText = isFinite(retirementAge) ? `${retirementAge.toFixed(1)} 歲` : '-';
         document.getElementById('resTargetToday').innerText = isFinite(targetInTodayMoney) ? formatCurrency(targetInTodayMoney) : '-';
         document.getElementById('resFirstWithdrawalToday').innerText = isFinite(firstYearWithdrawalToday) ? formatCurrency(firstYearWithdrawalToday) : '-';
 
-        // 產出表格與圖表數據
+        // 生成動態模擬明細
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
         
         let chartLabels = [];
         let chartData = [];
-        let chartColors = [];
 
         if (!isFinite(retirementAge) || retirementAge > lifeExpectancy) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 30px;">無法在預估壽命內達標，請提高投入金額或降低目標。</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 30px; color: var(--accent-danger);">無法在預估壽命內達標，請增加每年投入金額。</td></tr>';
             if(wealthChart) { wealthChart.data.labels = []; wealthChart.data.datasets[0].data = []; wealthChart.update(); }
             return;
         }
@@ -635,7 +669,7 @@
                     <td style="color: var(--accent-danger);">${formatCurrency(currentWithdrawal)}</td>
                     <td style="color: var(--accent-warning);">${formatCurrency(withdrawalToday)}</td>
                     <td style="color: var(--accent-green);">${formatCurrency(returnAmount)}</td>
-                    <td style="font-weight: 600;">${formatCurrency(Math.max(0, endBalance))}</td>
+                    <td style="font-weight: 700;">${formatCurrency(Math.max(0, endBalance))}</td>
                     <td>${statusLabel}</td>
                 </tr>
             `;
@@ -649,29 +683,28 @@
 
         tbody.innerHTML = htmlContent;
 
-        // 更新圖表
+        // 即時重繪 Chart.js
         if(wealthChart) {
             wealthChart.data.labels = chartLabels;
             wealthChart.data.datasets[0].data = chartData;
             
-            // 如果破產，圖表變色
-            if (chartData[chartData.length-1] <= 0) {
-                wealthChart.data.datasets[0].borderColor = '#f43f5e'; // 紅色
-                wealthChart.data.datasets[0].backgroundColor = 'rgba(244, 63, 94, 0.1)';
+            if (chartData[chartData.length - 1] <= 0) {
+                wealthChart.data.datasets[0].borderColor = '#f43f5e';
+                wealthChart.data.datasets[0].backgroundColor = 'rgba(244, 63, 94, 0.08)';
             } else {
-                wealthChart.data.datasets[0].borderColor = '#06b6d4'; // 青色
-                wealthChart.data.datasets[0].backgroundColor = 'rgba(6, 182, 212, 0.1)';
+                wealthChart.data.datasets[0].borderColor = '#06b6d4';
+                wealthChart.data.datasets[0].backgroundColor = 'rgba(6, 182, 212, 0.08)';
             }
             wealthChart.update();
         }
     }
 
-    // 綁定輸入框事件
+    // 監聽所有輸入欄位，只要有打字就即時運算
     document.querySelectorAll('input[type="number"]').forEach(input => {
         input.addEventListener('input', calculate);
     });
 
-    // 初始化
+    // 網頁載入完成後初始化
     window.onload = () => {
         initChart();
         calculate();
